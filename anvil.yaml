@@ -1,0 +1,5 @@
+allow_embedding: false
+package_name: Custom_HTML_10
+name: Custom HTML 10
+runtime_options: {version: 2, client_version: '3', server_version: python3-full, server_spec: null}
+services: []
