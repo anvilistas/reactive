@@ -2,3 +2,12 @@
 *.pyo
 __pycache__
 .anvil-data
+.vscode
+/venv/
+/build/*
+*/node_modules/
+/node_modules/
+.yarn
+yarn.lock
+yarn-error.log
+.yarnrc.yml
