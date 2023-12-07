@@ -10,6 +10,7 @@ from anvil import is_server_side
 from .constants import STATE_CLEAN, STATE_DISPOSED
 from .core import Computation
 from .owner import Owner, handleError
+from .utils import log
 
 __version__ = "0.0.1"
 
@@ -36,6 +37,7 @@ def flushSync():
 def flushEffects():
     global scheduledEffects
     scheduledEffects = True
+    # log("FLUSHING EFFECTS IN MICRO TASK")
     queueMicrotask(runEffects)
 
 
@@ -55,6 +57,7 @@ def runTop(node: Computation):
 
 def runEffects():
     global effects, scheduledEffects, runningEffects, renderEffects
+    # log("RUNNING EFFECTS")
 
     if not effects and not renderEffects:
         scheduledEffects = False
@@ -86,6 +89,7 @@ class Effect(Computation):
     def __init__(self, initialValue, compute, name="effect", **options):
         super().__init__(initialValue, compute, name=name, **options)
         self._updateIfNecessary()
+        queueMicrotask(self._updateIfNecessary)
         # effects.append(self)
 
     def _notify(self, state):

@@ -43,7 +43,7 @@ class Owner:
         self._context = None
         if currentOwner and not signal:
             currentOwner.append(self)
-        # log(f"creating {self}")
+        # log(f"creating {id}")
 
     def append(self, owner: "Owner"):
         owner._parent = self

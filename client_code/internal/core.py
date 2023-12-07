@@ -15,7 +15,7 @@ from .constants import (
 from .error import NotReadyError
 from .flags import DEFAULT_FLAGS, ERROR_BIT, LOADING_BIT
 from .owner import Owner, getOwner, setCurrentOwner
-from .utils import log
+from .utils import log, wrap_compute
 
 __version__ = "0.0.1"
 
@@ -31,19 +31,18 @@ UNCHANGED = object()
 
 class Computation(Owner):
     def __init__(self, initialValue, compute, equals=None, name=None):
+        Owner.__init__(self, compute is None)
         self._sources = None
         self._observers = None
         self._value = initialValue
-        self._compute = compute
+        self._compute = compute and wrap_compute(compute)
         self._state = STATE_DIRTY if compute else STATE_CLEAN
+        self._name = name or ("compute" if compute else "signal")
         self._equals = equals if equals is not None else isEqual
         self._stateFlags = 0
         self._handlerMask = DEFAULT_FLAGS
         self._error = None
         self._loading = None
-        Owner.__init__(
-            self, compute is None, name=name or ("compute" if compute else "signal")
-        )
 
     def _read(self):
         global newFlags
@@ -229,7 +228,7 @@ def track(computation):
 
 
 def update(node: Computation):
-    # log(f"UPDATING:{self}")
+    # log(f"{node}: UPDATING")
     global newSources, newSourcesIndex, newFlags
     prevSources = newSources
     prevSourcesIndex = newSourcesIndex
