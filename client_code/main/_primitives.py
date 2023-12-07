@@ -5,21 +5,21 @@
 #
 # This software is published at https://github.com/anvilistas/reactive
 
-import anvil
+from functools import partial, wraps
 
-__version__ = "0.0.1"
+import anvil
+from anvil import Component
+
+from ..internal.signal import create_effect, create_memo, create_root
+from ._constants import MISSING
+from ._utils import CacheDict, noop
 
 if not anvil.is_server_side():
     from anvil.js.window import WeakMap
 else:
     WeakMap = dict
-from functools import partial, wraps
 
-from anvil import Component
-
-from ..reactively.signal import create_effect, create_memo, create_reaction, create_root
-from ._constants import MISSING
-from ._utils import CacheDict, noop
+__version__ = "0.0.1"
 
 REACTIVE_CACHE = WeakMap()
 REACTIVIVE_COMPONENT = WeakMap()
@@ -198,32 +198,32 @@ def noop_method(self):
 
 
 # TODO
-class reaction(ReactiveComputation):
-    _creator = create_reaction
-    _tracker = noop_method
+# class reaction(ReactiveComputation):
+#     _creator = create_reaction
+#     _tracker = noop_method
 
-    def get_compute(self, obj):
-        rcs = REACTIVE_CACHE.get(obj) or {}
-        rv = rcs.get(self, None)
-        if rv is None:
-            rv = wrap(self.fn.__get__(obj))
-            rv = MethodLike(rv)
-            rv.tracker = self._tracker.__get__(obj)
-            rcs[self] = rv
-        return rv
+#     def get_compute(self, obj):
+#         rcs = REACTIVE_CACHE.get(obj) or {}
+#         rv = rcs.get(self, None)
+#         if rv is None:
+#             rv = wrap(self.fn.__get__(obj))
+#             rv = MethodLike(rv)
+#             rv.tracker = self._tracker.__get__(obj)
+#             rcs[self] = rv
+#         return rv
 
-    def __call__(self, obj):
-        reaction = self.get_compute(obj)
-        track = create_reaction(reaction, name=self.name)
+#     def __call__(self, obj):
+#         reaction = self.get_compute(obj)
+#         track = create_reaction(reaction, name=self.name)
 
-        def wrap_track(tracker=None):
-            tracker = tracker or reaction.tracker
-            return track(tracker)
+#         def wrap_track(tracker=None):
+#             tracker = tracker or reaction.tracker
+#             return track(tracker)
 
-        reaction.track = wrap_track
+#         reaction.track = wrap_track
 
-    def tracker(self, tracker):
-        self._tracker = tracker
+#     def tracker(self, tracker):
+#         self._tracker = tracker
 
 
 def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=()):

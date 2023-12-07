@@ -25,16 +25,22 @@ def create_signal(initial_value):
     return [node.read, set_signal]
 
 
-def create_memo(compute, initialValue=None):
-    node = Computation(initialValue, compute)
+def create_memo(compute, initialValue=None, name=None):
+    node = Computation(initialValue, compute, name=name or "memo")
     return node.read
 
 
-def create_effect(effect, initialValue=None):
+SENTINEL = object()
+
+
+def create_effect(effect, initialValue=SENTINEL, name=None):
     def wrap_effect(value=None):
         return effect()
 
-    return Effect(initialValue, wrap_effect)
+    if initialValue is not SENTINEL:
+        wrap_effect = effect
+
+    return Effect(initialValue, wrap_effect, name=name)
 
 
 def create_render_effect(compute, effect):
@@ -45,6 +51,9 @@ def create_render_effect(compute, effect):
         return compute()
 
     return RenderEffect(wrap_compute, wrap_effect)
+
+
+# TODO should these be suspension wrapped?
 
 
 def create_root(init):
@@ -71,3 +80,10 @@ def catch_error(fn, handler):
         compute(owner, fn, None)
     except Exception as e:
         handleError(owner, e)
+
+
+# TODO
+def create_reaction(fn, initialValue=None, name=None):
+    def track(fn):
+        node = Computation(initialValue, lambda prev: fn(), name=name)
+        node.read()
