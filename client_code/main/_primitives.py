@@ -17,7 +17,7 @@ from functools import partial, wraps
 
 from anvil import Component
 
-from ..reactively.signal import create_effect, create_memo, create_reaction, create_root
+from ..internal.signal import create_effect, create_memo, create_root
 from ._constants import MISSING
 from ._utils import CacheDict, noop
 
@@ -198,32 +198,32 @@ def noop_method(self):
 
 
 # TODO
-class reaction(ReactiveComputation):
-    _creator = create_reaction
-    _tracker = noop_method
+# class reaction(ReactiveComputation):
+#     _creator = create_reaction
+#     _tracker = noop_method
 
-    def get_compute(self, obj):
-        rcs = REACTIVE_CACHE.get(obj) or {}
-        rv = rcs.get(self, None)
-        if rv is None:
-            rv = wrap(self.fn.__get__(obj))
-            rv = MethodLike(rv)
-            rv.tracker = self._tracker.__get__(obj)
-            rcs[self] = rv
-        return rv
+#     def get_compute(self, obj):
+#         rcs = REACTIVE_CACHE.get(obj) or {}
+#         rv = rcs.get(self, None)
+#         if rv is None:
+#             rv = wrap(self.fn.__get__(obj))
+#             rv = MethodLike(rv)
+#             rv.tracker = self._tracker.__get__(obj)
+#             rcs[self] = rv
+#         return rv
 
-    def __call__(self, obj):
-        reaction = self.get_compute(obj)
-        track = create_reaction(reaction, name=self.name)
+#     def __call__(self, obj):
+#         reaction = self.get_compute(obj)
+#         track = create_reaction(reaction, name=self.name)
 
-        def wrap_track(tracker=None):
-            tracker = tracker or reaction.tracker
-            return track(tracker)
+#         def wrap_track(tracker=None):
+#             tracker = tracker or reaction.tracker
+#             return track(tracker)
 
-        reaction.track = wrap_track
+#         reaction.track = wrap_track
 
-    def tracker(self, tracker):
-        self._tracker = tracker
+#     def tracker(self, tracker):
+#         self._tracker = tracker
 
 
 def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=()):
