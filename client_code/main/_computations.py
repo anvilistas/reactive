@@ -8,7 +8,7 @@
 from anvil import is_server_side
 from anvil.server import portable_class
 
-from ..internal.core import Computation
+from .._internal.core import Computation
 
 __version__ = "0.0.1"
 

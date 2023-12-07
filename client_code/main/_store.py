@@ -8,7 +8,7 @@
 from anvil import is_server_side
 from anvil.server import portable_class
 
-from ..internal.core import isEqual, untrack
+from .._internal.core import isEqual, untrack
 from ._computations import StoreSignal, UniqueSignal
 from ._constants import MISSING
 

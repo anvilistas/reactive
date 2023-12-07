@@ -10,7 +10,7 @@ from functools import partial, wraps
 import anvil
 from anvil import Component
 
-from ..internal.signal import create_effect, create_memo, create_root
+from .._internal.signal import create_effect, create_memo, create_root
 from ._constants import MISSING
 from ._utils import CacheDict, noop
 
