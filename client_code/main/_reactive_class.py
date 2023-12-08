@@ -68,3 +68,11 @@ def reactive_class(base):
     base.__is_reactive__ = True
 
     return base
+
+
+def reactive_instance(self):
+    if anvil.is_server_side():
+        return
+    reactive_class(type(self))
+    if type(self.__dict__) is dict:
+        self.__dict__ = ReactiveDict(self.__dict__)
