@@ -5,7 +5,7 @@
 #
 # This software is published at https://github.com/anvilistas/reactive
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 STATE_CLEAN = 0
 STATE_CHECK = 1
