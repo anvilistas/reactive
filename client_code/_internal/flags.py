@@ -5,7 +5,7 @@
 #
 # This software is published at https://github.com/anvilistas/reactive
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 ERROR_OFFSET = 0
 ERROR_BIT = 1 << ERROR_OFFSET
