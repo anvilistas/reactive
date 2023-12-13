@@ -43,12 +43,13 @@ def create_component_root(component, dispose):
 
 def create_reactive_root(obj, dispose):
     cls = type(obj)
+    rcs = REACTIVE_CACHE.get(obj)
     for base in cls.__mro__:
         rc = getattr(base, REACTIVE_REG, None)
         if rc is None:
             continue
         for computation in rc:
-            computation(obj)
+            rcs[computation] = computation.create(obj)
     if isinstance(obj, Component):
         create_component_root(obj, dispose)
 
@@ -140,16 +141,14 @@ class ReactiveComputation:
         __init__.__reactive_init__ = True
         owner.__init__ = __init__
 
+    def _fn_compute(self, obj, ob_type=None):
+        return self.fn.__get__(obj, ob_type or type(obj))
+
     def get_compute(self, obj):
-        rcs = REACTIVE_CACHE.get(obj) or {}
-        rv = rcs.get(self, None)
-        if rv is None:
-            if self._prev:
-                rv = self.fn.__get__(obj)
-            else:
-                rv = wrap(self.fn.__get__(obj))
-            rcs[self] = rv
-        return rv
+        if self._prev:
+            return self._fn_compute(obj)
+        else:
+            return wrap(self._fn_compute(obj))
 
     def __get__(self, obj=None, type=None):
         if obj is None:
@@ -160,12 +159,20 @@ class ReactiveComputation:
         self.setup(owner)
         self.name = f"{self._type}-{name}"
 
-    def __call__(self, obj):
+    def create(self, obj):
         return self.creator(self.get_compute(obj), self._init_value, name=self.name)
 
+    def __call__(self, obj):
+        return self.__get__(obj)()
 
-class computed_property(ReactiveComputation):
+
+class computed(ReactiveComputation):
     _creator = create_memo
+
+    def _fn_compute(self, obj, ob_type=None):
+        if type(self.fn) is property:
+            return self.fn.fget.__get__(obj, ob_type or type(obj))
+        return self.fn.__get__(obj, ob_type or type(obj))
 
     def __get__(self, obj=None, type=None):
         if obj is None:
@@ -173,8 +180,11 @@ class computed_property(ReactiveComputation):
         rcs = REACTIVE_CACHE.get(obj) or {}
         rv = rcs.get(self, None)
         if rv is None:
-            rv = self.fn.__get__(obj, type)
+            rv = self._fn_compute(obj, type)
         return rv()
+
+    def __call__(self, obj):
+        return self.__get__(obj)
 
 
 class effect(ReactiveComputation):
