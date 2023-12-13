@@ -43,12 +43,13 @@ def create_component_root(component, dispose):
 
 def create_reactive_root(obj, dispose):
     cls = type(obj)
+    rcs = REACTIVE_CACHE.get(sender)
     for base in cls.__mro__:
         rc = getattr(base, REACTIVE_REG, None)
         if rc is None:
             continue
         for computation in rc:
-            computation(obj)
+            rcs[computation] = computation(obj)
     if isinstance(obj, Component):
         create_component_root(obj, dispose)
 
@@ -151,7 +152,7 @@ class ReactiveComputation:
                 rv = self.fn.__get__(obj)
             else:
                 rv = wrap(self.fn.__get__(obj))
-            rcs[self] = rv
+            # rcs[self] = rv
         return rv
 
     def __get__(self, obj=None, type=None):
@@ -173,14 +174,11 @@ class computed_property(ReactiveComputation):
     def __get__(self, obj=None, type=None):
         if obj is None:
             return self
-        rcs = REACTIVE_CACHE.get(obj)
-        if rcs is None:
-            rcs = {}
+        rcs = REACTIVE_CACHE.get(obj) or {}
         rv = rcs.get(self, None)
+        print(rv, rcs)
         if rv is None:
             rv = self.fn.__get__(obj, type)
-            rcs[self] = rv
-        print(rv)
         return rv()
 
 
@@ -190,12 +188,13 @@ class computed(ReactiveComputation):
     def __get__(self, obj=None, type=None):
         if obj is None:
             return self
-        rcs = REACTIVE_CACHE.get(obj) or {}
+        rcs = REACTIVE_CACHE.get(obj)
+        if rcs is None:
+            rcs = {}
         rv = rcs.get(self, None)
         print(rv, rcs)
         if rv is None:
             rv = self.fn.__get__(obj, type)
-            rcs[self] = rv
         return rv
 
 
