@@ -187,7 +187,7 @@ class computed(ReactiveComputation):
             return self
         rcs = REACTIVE_CACHE.get(obj) or {}
         rv = rcs.get(self, None)
-        print(rv, type(rcs))
+        print(rv, rcs)
         if rv is None:
             rv = self.fn.__get__(obj, type)
             rcs[self] = rv
