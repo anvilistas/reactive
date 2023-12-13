@@ -49,7 +49,7 @@ def create_reactive_root(obj, dispose):
         if rc is None:
             continue
         for computation in rc:
-            rcs[computation] = computation(obj)
+            rcs[computation] = computation.create(obj)
     if isinstance(obj, Component):
         create_component_root(obj, dispose)
 
@@ -159,8 +159,11 @@ class ReactiveComputation:
         self.setup(owner)
         self.name = f"{self._type}-{name}"
 
-    def __call__(self, obj):
+    def create(self, obj):
         return self.creator(self.get_compute(obj), self._init_value, name=self.name)
+
+    def __call__(self, obj):
+        return self.__get__(obj)()
 
 
 class computed_property(ReactiveComputation):
@@ -175,12 +178,15 @@ class computed_property(ReactiveComputation):
             rv = self._fn_compute(obj, type)
         return rv()
 
+    def __call__(self, obj):
+        return self.__get__(obj)
+
 
 class computed(computed_property):
     def _fn_compute(self, obj, ob_type=None):
         if type(self.fn) is not property:
-            raise TypeError("computed decorated must come after poperty decorator")
-        return self.fn.fget.__get__(obj, ob_type or type(obj))
+            return self.fn.fget.__get__(obj, ob_type or type(obj))
+        return self.fn.__get__(obj, ob_type or type(obj))
 
 
 class effect(ReactiveComputation):
