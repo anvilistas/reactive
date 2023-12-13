@@ -97,6 +97,7 @@ class Computation(Owner):
 
         if observers is not None:
             for o in observers:
+                print(self._name, o, valueChanged)
                 if valueChanged:
                     o._notify(STATE_DIRTY)
                 elif changedFlagMask:
