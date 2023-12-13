@@ -174,6 +174,7 @@ class computed_property(ReactiveComputation):
         rv = rcs.get(self, None)
         if rv is None:
             rv = self.fn.__get__(obj, type)
+            rcs[self] = rv
         print(rv)
         return rv()
 
@@ -189,6 +190,7 @@ class computed(ReactiveComputation):
         print(rv)
         if rv is None:
             rv = self.fn.__get__(obj, type)
+            rcs[self] = rv
         return rv
 
 
