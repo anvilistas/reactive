@@ -43,7 +43,7 @@ def create_component_root(component, dispose):
 
 def create_reactive_root(obj, dispose):
     cls = type(obj)
-    rcs = REACTIVE_CACHE.get(sender)
+    rcs = REACTIVE_CACHE.get(obj)
     for base in cls.__mro__:
         rc = getattr(base, REACTIVE_REG, None)
         if rc is None:
