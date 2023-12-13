@@ -127,7 +127,6 @@ class ReactiveComputation:
                 return old_init(obj, *args, **kws)
 
             REACTIVE_CACHE.set(obj, CacheDict())
-            print(REACTIVE_CACHE.get(obj))
             old_init(obj, *args, **kws)
 
             if isinstance(obj, Component):
@@ -142,18 +141,14 @@ class ReactiveComputation:
         __init__.__reactive_init__ = True
         owner.__init__ = __init__
 
+    def _fn_compute(self, obj, ob_type=None):
+        return self.fn.__get__(obj, ob_type or type(obj))
+
     def get_compute(self, obj):
-        rcs = REACTIVE_CACHE.get(obj)
-        if rcs is None:
-            rcs = {}
-        rv = rcs.get(self, None)
-        if rv is None:
-            if self._prev:
-                rv = self.fn.__get__(obj)
-            else:
-                rv = wrap(self.fn.__get__(obj))
-            # rcs[self] = rv
-        return rv
+        if self._prev:
+            return self._fn_compute(obj)
+        else:
+            return wrap(self._fn_compute(obj))
 
     def __get__(self, obj=None, type=None):
         if obj is None:
@@ -176,26 +171,17 @@ class computed_property(ReactiveComputation):
             return self
         rcs = REACTIVE_CACHE.get(obj) or {}
         rv = rcs.get(self, None)
-        print(rv, rcs)
         if rv is None:
-            rv = self.fn.__get__(obj, type)
+            rv = self._fn_compute(obj, type)
         return rv()
 
 
-class computed(ReactiveComputation):
-    _creator = create_memo
-
-    def __get__(self, obj=None, type=None):
-        if obj is None:
-            return self
-        rcs = REACTIVE_CACHE.get(obj)
-        if rcs is None:
-            rcs = {}
-        rv = rcs.get(self, None)
-        print(rv, rcs)
-        if rv is None:
-            rv = self.fn.__get__(obj, type)
-        return rv
+class computed(computed_property):
+    def _fn_compute(self, obj):
+        if self._prev:
+            return self.fn.fget
+        else:
+            return wrap(self.fn.fget)
 
 
 class effect(ReactiveComputation):
