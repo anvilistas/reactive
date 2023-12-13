@@ -177,6 +177,19 @@ class computed_property(ReactiveComputation):
         return rv()
 
 
+class computed(ReactiveComputation):
+    _creator = create_memo
+
+    def __get__(self, obj=None, type=None):
+        if obj is None:
+            return self
+        rcs = REACTIVE_CACHE.get(obj) or {}
+        rv = rcs.get(self, None)
+        if rv is None:
+            rv = self.fn.__get__(obj, type)
+        return rv
+
+
 class effect(ReactiveComputation):
     _creator = create_effect
 
