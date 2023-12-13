@@ -177,11 +177,10 @@ class computed_property(ReactiveComputation):
 
 
 class computed(computed_property):
-    def _fn_compute(self, obj):
-        if self._prev:
-            return self.fn.fget
-        else:
-            return wrap(self.fn.fget)
+    def _fn_compute(self, obj, ob_type=None):
+        if type(self.fn) is property:
+            return self.fn.fget.__get__(obj, ob_type or type(obj))
+        return self.fn.__get__(obj, ob_type or type(obj))
 
 
 class effect(ReactiveComputation):
