@@ -184,7 +184,7 @@ class computed_property(ReactiveComputation):
 
 class computed(computed_property):
     def _fn_compute(self, obj, ob_type=None):
-        if type(self.fn) is not property:
+        if type(self.fn) is property:
             return self.fn.fget.__get__(obj, ob_type or type(obj))
         return self.fn.__get__(obj, ob_type or type(obj))
 
