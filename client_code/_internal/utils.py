@@ -42,7 +42,6 @@ wrap_suspension = Function(
     """
 const rv = cb();
 if (rv instanceof Promise) {
-    Sk.builtin.print(["RETURNING PROMISE"])
     return {then: (x) => rv.then(x), catch: (e) => rv.catch(e)}
 }
 return rv;
