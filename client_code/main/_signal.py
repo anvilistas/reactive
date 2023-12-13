@@ -8,7 +8,7 @@
 from ._constants import MISSING
 from ._store import StoreSignal, as_signal, wrap
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 class signal:

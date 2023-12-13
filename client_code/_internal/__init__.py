@@ -5,4 +5,4 @@
 #
 # This software is published at https://github.com/anvilistas/reactive
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"

@@ -10,7 +10,7 @@ from anvil.server import portable_class
 
 from .._internal.core import Computation
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 class UniqueSignal(Computation):
