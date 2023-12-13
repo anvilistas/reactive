@@ -19,7 +19,7 @@ if not anvil.is_server_side():
 else:
     WeakMap = dict
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 REACTIVE_CACHE = WeakMap()
 REACTIVIVE_COMPONENT = WeakMap()

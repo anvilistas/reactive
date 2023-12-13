@@ -10,7 +10,7 @@ from ._primitives import bind, computed, effect, render_effect, writeback
 from ._reactive_class import reactive_class, reactive_instance
 from ._signal import signal
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 @reactive_class
