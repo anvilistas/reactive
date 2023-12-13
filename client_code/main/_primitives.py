@@ -166,8 +166,13 @@ class ReactiveComputation:
         return self.__get__(obj)()
 
 
-class computed_property(ReactiveComputation):
+class computed(ReactiveComputation):
     _creator = create_memo
+
+    def _fn_compute(self, obj, ob_type=None):
+        if type(self.fn) is property:
+            return self.fn.fget.__get__(obj, ob_type or type(obj))
+        return self.fn.__get__(obj, ob_type or type(obj))
 
     def __get__(self, obj=None, type=None):
         if obj is None:
@@ -180,13 +185,6 @@ class computed_property(ReactiveComputation):
 
     def __call__(self, obj):
         return self.__get__(obj)
-
-
-class computed(computed_property):
-    def _fn_compute(self, obj, ob_type=None):
-        if type(self.fn) is property:
-            return self.fn.fget.__get__(obj, ob_type or type(obj))
-        return self.fn.__get__(obj, ob_type or type(obj))
 
 
 class effect(ReactiveComputation):
