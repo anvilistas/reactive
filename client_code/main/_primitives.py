@@ -126,6 +126,7 @@ class ReactiveComputation:
                 return old_init(obj, *args, **kws)
 
             REACTIVE_CACHE.set(obj, CacheDict())
+            print(REACTIVE_CACHE.get(obj))
             old_init(obj, *args, **kws)
 
             if isinstance(obj, Component):
@@ -141,7 +142,9 @@ class ReactiveComputation:
         owner.__init__ = __init__
 
     def get_compute(self, obj):
-        rcs = REACTIVE_CACHE.get(obj) or {}
+        rcs = REACTIVE_CACHE.get(obj)
+        if rcs is None:
+            rcs = {}
         rv = rcs.get(self, None)
         if rv is None:
             if self._prev:
@@ -170,7 +173,9 @@ class computed_property(ReactiveComputation):
     def __get__(self, obj=None, type=None):
         if obj is None:
             return self
-        rcs = REACTIVE_CACHE.get(obj) or {}
+        rcs = REACTIVE_CACHE.get(obj)
+        if rcs is None:
+            rcs = {}
         rv = rcs.get(self, None)
         if rv is None:
             rv = self.fn.__get__(obj, type)
