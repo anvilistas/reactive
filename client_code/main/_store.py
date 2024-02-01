@@ -123,6 +123,7 @@ class ReactiveDict(dict):
         return [(k, v._value) for k, v in dict.items(self)]
 
     def __repr__(self):
+        self.DICT_ITEMS.read()
         d = {k: v._value for k, v in dict.items(self)}
         return f"ReactiveDict({d})"
 
@@ -230,7 +231,8 @@ class ReactiveList(list):
         return [r._value for r in list_iter(self) for _ in range(x)]
 
     def __repr__(self):
-        return f"ReactiveList({[x._value for x in list_iter(self)]})"
+        self.LIST_LEN.read()
+        return f"ReactiveList({[x.read() for x in list_iter(self)]})"
 
     def __serialize__(self, gbl_data):
         with untrack():
