@@ -10,7 +10,7 @@ from .effect import Effect, RenderEffect
 from .helpers import is_callable
 from .owner import HANDLER, Owner, handleError
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 
 def create_signal(initial_value):
