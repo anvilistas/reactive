@@ -200,6 +200,11 @@ class ReactiveList(list):
         self.LIST_LEN.update()
         return rv.read()
 
+    def sort(self, *args, **kws):
+        rv = list.sort(self, *args, **kws)
+        self.LIST_LEN.update()
+        return rv
+
     def __iadd__(self, other):
         self.extend(other)
         return self
