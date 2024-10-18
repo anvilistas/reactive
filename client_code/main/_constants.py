@@ -5,6 +5,6 @@
 #
 # This software is published at https://github.com/anvilistas/reactive
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 MISSING = object()
