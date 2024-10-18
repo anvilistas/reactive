@@ -26,8 +26,11 @@ def _cmp(dunder):
         if type(other) is StoreSignal:
             other = other._value
         try:
-            return getattr(self._value, dunder)(other)
-        except AttributeError:
+            rv = getattr(self._value, dunder)(other)
+            print("RESULT", dunder, rv, self._value, other)
+            return rv
+        except AttributeError as e:
+            print("ATTRERROR", e)
             return NotImplemented
 
     fn.__name__ = dunder
