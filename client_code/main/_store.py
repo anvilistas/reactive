@@ -202,12 +202,15 @@ class ReactiveList(list):
 
     def sort(self, *, key=None, reverse=False):
         key_ = key
-
-        def wrap_key(x):
-            return key_(x._value)
-
         if key_ is not None:
-            key = wrap_key
+
+            def key(x):
+                return key_(x._value)
+
+        else:
+
+            def key(x):
+                return x._value
 
         rv = list.sort(self, key=key, reverse=reverse)
         self.LIST_LEN.update()
