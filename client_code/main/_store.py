@@ -200,6 +200,17 @@ class ReactiveList(list):
         self.LIST_LEN.update()
         return rv.read()
 
+    def sort(self, *, key=None, reverse=False):
+        key_ = key
+        if key_ is not None:
+
+            def key(x):
+                return key_(x._value)
+
+        rv = list.sort(self, key=key, reverse=reverse)
+        self.LIST_LEN.update()
+        return rv
+
     def __iadd__(self, other):
         self.extend(other)
         return self
