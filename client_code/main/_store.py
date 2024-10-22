@@ -37,7 +37,7 @@ dict_pop = dict.pop
 
 @portable_class
 class ReactiveDict(dict):
-    __slots__ = ["DICT_KEYS", "DICT_VALS", "DICT_ITEMS"]
+    __slots__ = ["DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
 
     def __init__(self, *args, **kws):
         target = dict(*args, **kws)
@@ -45,6 +45,9 @@ class ReactiveDict(dict):
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
+        self.DICT_BOOL = UniqueSignal(
+            "dict_bool", bool(dict.__len__(self)), equals=None
+        )
 
     def __getitem__(self, key):
         res = dict_getitem(self, key)
@@ -65,6 +68,7 @@ class ReactiveDict(dict):
         self.DICT_VALS.update()
         self.DICT_ITEMS.update()
         self.DICT_KEYS.update()
+        self.DICT_BOOL.update(bool(dict.__len__(self)))
 
     def __delitem__(self, key):
         self.pop(key)
@@ -88,6 +92,7 @@ class ReactiveDict(dict):
         self.DICT_VALS.update()
         self.DICT_ITEMS.update()
         self.DICT_KEYS.update()
+        self.DICT_BOOL.update(bool(dict.__len__(self)))
         rv = res._value
         res.write(MISSING)  # force observers to re-run
         return rv
@@ -106,9 +111,15 @@ class ReactiveDict(dict):
     def __iter__(self):
         return iter(self.keys())
 
-    def __bool__(self):
+    def __len__(self):
         self.DICT_KEYS.read()
-        return dict.__bool__(self)
+        # TODO - we probably want a __bool__ here too
+        # that way truthy/falsy won't fire whenever the keys change
+        return dict.__len__(self)
+
+    def __bool__(self):
+        self.DICT_BOOL.read()
+        return bool(dict.__len__(self))
 
     def keys(self):
         self.DICT_KEYS.read()
@@ -152,6 +163,13 @@ class ReactiveList(list):
         target = list(*args, **kws)
         list.__init__(self, (as_signal(v) for v in target))
         self.LIST_LEN = UniqueSignal("list_len")
+        self.LIST_BOOL = UniqueSignal(
+            "list_bool", bool(list.__len__(self)), equals=None
+        )
+
+    def _update_len(self):
+        self.LIST_LEN.update()
+        self.LIST_BOOL.update(bool(list.__len__(self)))
 
     def __getitem__(self, i):
         rv = list.__getitem__(self, i)
@@ -166,24 +184,24 @@ class ReactiveList(list):
         if type(i) is int:
             items.write(wrap(val))
         else:
-            self.LIST_LEN.update()
+            self._update_len()
             list_set(self, i, [as_signal(v) for v in val])
 
     def remove(self, val):
         list.remove(self, val)
-        self.LIST_LEN.update()
+        self._update_len()
 
     def extend(self, val):
         list.extend(self, (as_signal(v) for v in val))
-        self.LIST_LEN.update()
+        self._update_len()
 
     def append(self, val):
         list.append(self, as_signal(val))
-        self.LIST_LEN.update()
+        self._update_len()
 
     def insert(self, i, val):
         list.insert(self, i, as_signal(val))
-        self.LIST_LEN.update()
+        self._update_len()
 
     def __iter__(self):
         self.LIST_LEN.read()
@@ -193,11 +211,11 @@ class ReactiveList(list):
         if not len(self):
             return
         list.clear(self)
-        self.LIST_LEN.update()
+        self._update_len()
 
     def pop(self, *args):
         rv = list.pop(self, *args)
-        self.LIST_LEN.update()
+        self._update_len()
         return rv.read()
 
     def sort(self, *, key=None, reverse=False):
@@ -208,7 +226,7 @@ class ReactiveList(list):
                 return key_(x._value)
 
         rv = list.sort(self, key=key, reverse=reverse)
-        self.LIST_LEN.update()
+        self._update_len()
         return rv
 
     def __iadd__(self, other):
@@ -258,3 +276,7 @@ class ReactiveList(list):
     def __len__(self):
         self.LIST_LEN.read()
         return list_len(self)
+
+    def __bool__(self):
+        self.LIST_BOOL.read()
+        return bool(list.__len__(self))
