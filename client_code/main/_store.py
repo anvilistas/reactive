@@ -108,6 +108,8 @@ class ReactiveDict(dict):
 
     def __len__(self):
         self.DICT_KEYS.read()
+        # TODO - we probably want a __bool__ here too
+        # that way truthy/falsy won't fire whenever the keys change
         return dict.__len__(self)
 
     def keys(self):
@@ -256,5 +258,8 @@ class ReactiveList(list):
         return ReactiveList(data)
 
     def __len__(self):
+        self.DICT_KEYS.read()
+        # TODO - we probably want a __bool__ here too
+        # that way truthy/falsy won't fire whenever the len change
         self.LIST_LEN.read()
         return list_len(self)
