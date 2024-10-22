@@ -106,9 +106,9 @@ class ReactiveDict(dict):
     def __iter__(self):
         return iter(self.keys())
 
-    def __bool__(self):
+    def __len__(self):
         self.DICT_KEYS.read()
-        return dict.__bool__(self)
+        return dict.__len__(self)
 
     def keys(self):
         self.DICT_KEYS.read()
