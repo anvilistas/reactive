@@ -16,6 +16,8 @@ dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__
 dict_pop = dict.pop
 
+object_new = object.__new__
+
 
 def reactive_class(base):
     """decorator for an reactive class"""
@@ -31,7 +33,10 @@ def reactive_class(base):
 
     @staticmethod
     def __new__(cls, *args, **kws):
-        self = old_new(cls, *args, **kws)
+        if old_new is object_new:
+            self = old_new(cls)
+        else:
+            self = old_new(cls, *args, **kws)
         old_dict = self.__dict__
         self.__dict__ = ReactiveDict(old_dict)
         old_dict.clear()
