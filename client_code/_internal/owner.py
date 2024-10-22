@@ -8,7 +8,7 @@
 from .constants import STATE_CLEAN, STATE_DISPOSED
 from .utils import log
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 HANDLER = object()
 

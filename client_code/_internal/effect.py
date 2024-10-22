@@ -12,7 +12,7 @@ from .core import Computation
 from .owner import Owner, handleError
 from .utils import log
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 if is_server_side():
 

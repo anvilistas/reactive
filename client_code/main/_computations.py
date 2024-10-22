@@ -11,7 +11,7 @@ from anvil.server import portable_class
 from .._internal.core import Computation
 from ._constants import MISSING
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 class UniqueSignal(Computation):
