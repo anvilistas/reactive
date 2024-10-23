@@ -57,9 +57,9 @@ class ReactiveDict(dict):
     def _update_signals(self, keys=True):
         if keys:
             self.DICT_KEYS.update()
+            self.DICT_BOOL.write(bool(dict.__len__(self)))
         self.DICT_VALS.update()
         self.DICT_ITEMS.update()
-        self.DICT_BOOL.write(bool(dict.__len__(self)))
 
     def __getitem__(self, key):
         val = dict_get(self, key, MISSING)
