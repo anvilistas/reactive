@@ -78,15 +78,17 @@ class ReactiveDict(dict):
 
         val = wrap(val)
 
-        if type(current) is StoreSignal and isEqual(current._value, val):
+        if type(current) is StoreSignal:
+            current = current._value
+
+        if isEqual(current, val):
             # nothing has changed
             return
 
-        v = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
-        dict_setitem(self, key, v)
+        sig = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
+        dict_setitem(self, key, sig)
         self._update_signals(keys=current is MISSING)
-        v.write(val)
-        print(v)
+        sig.write(val)
 
     def __delitem__(self, key):
         self.pop(key)
@@ -108,16 +110,16 @@ class ReactiveDict(dict):
 
     def pop(self, key, default=MISSING):
         if default is MISSING:
-            rv = dict_pop(self, key)
+            res = dict_pop(self, key)
         else:
-            rv = dict_pop(self, key, MISSING)
-            if rv is MISSING:
+            res = dict_pop(self, key, MISSING)
+            if res is MISSING:
                 return default
 
-        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(rv))
         self._update_signals()
-        c.write(MISSING)  # force observers to re-run
-        return rv._value
+        rv = res._value
+        res.write(MISSING)  # force observers to re-run
+        return rv
 
     def get(self, key, default=None):
         try:
