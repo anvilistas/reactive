@@ -9,6 +9,7 @@ import anvil
 
 from ._computations import StoreSignal
 from ._store import ReactiveDict
+from ._utils import is_testing
 
 __version__ = "0.0.11"
 
@@ -22,7 +23,7 @@ object_new = object.__new__
 
 def reactive_class(base):
     """decorator for an reactive class"""
-    if anvil.is_server_side():
+    if anvil.is_server_side() and not is_testing():
         return base
 
     if hasattr(base, "__is_reactive__"):
@@ -58,7 +59,7 @@ def reactive_class(base):
         if type(d) is dict:
             return old_setattr(self, attr, val)
         prev = None
-        if attr in d:
+        if dict_contains(d, attr):
             prev = dict_getitem(d, attr)
             assert type(prev) is StoreSignal, "expected a signal"
         old_setattr(self, attr, val)
@@ -78,7 +79,7 @@ def reactive_class(base):
 
 
 def reactive_instance(self):
-    if anvil.is_server_side():
+    if anvil.is_server_side() and not is_testing():
         return self
     reactive_class(type(self))
     if type(self.__dict__) is dict:

@@ -20,15 +20,19 @@ class signal:
         self._name = name
 
     def _get_signal(self, obj):
-        node = obj.__dict__.get(self._name)
+        d = obj.__dict__
+        node = dict.get(d, self._name)
         if node is None:
             if self._default_factory is not MISSING:
                 value = self._default_factory()
             else:
                 value = self._default
-            node = obj.__dict__[self._name] = as_signal(value, name=self._name)
+            node = as_signal(value, name=self._name)
+            dict.__setitem__(d, self._name, node)
         elif type(node) is not StoreSignal:
-            node = obj.__dict__[self._name] = as_signal(node, name=self._name)
+            node = as_signal(node, name=self._name)
+            dict.__setitem__(d, self._name, node)
+
         return node
 
     def __get__(self, obj=None, type=None):

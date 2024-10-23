@@ -17,12 +17,16 @@ from ._utils import CacheDict, noop
 if not anvil.is_server_side():
     from anvil.js.window import WeakMap
 else:
-    WeakMap = dict
+
+    class WeakMap(dict):
+        has = dict.__contains__
+        set = dict.__setitem__
+
 
 __version__ = "0.0.11"
 
 REACTIVE_CACHE = WeakMap()
-REACTIVIVE_COMPONENT = WeakMap()
+REACTIVE_COMPONENT = WeakMap()
 REACTIVE_REG = "__reactive_register__"
 
 
@@ -35,7 +39,7 @@ def wrap(fn):
 
 
 def create_component_root(component, dispose):
-    rcs = REACTIVIVE_COMPONENT.get(component)
+    rcs = REACTIVE_COMPONENT.get(component)
     rcs.disposal.append(dispose)
     for computation in rcs.writebacks:
         computation(component)
@@ -59,7 +63,7 @@ def add_reactivity(sender, **event_args):
 
 
 def dispose_reactivity(sender, **event_args):
-    disposal = REACTIVIVE_COMPONENT.get(sender).disposal
+    disposal = REACTIVE_COMPONENT.get(sender).disposal
     for dispose in disposal:
         dispose()
     disposal.clear()
@@ -119,9 +123,9 @@ class ReactiveComputation:
             old_init(obj, *args, **kws)
 
             if isinstance(obj, Component):
-                if REACTIVIVE_COMPONENT.has(obj):
+                if REACTIVE_COMPONENT.has(obj):
                     return
-                REACTIVIVE_COMPONENT.set(obj, CacheDict(writebacks=[], disposal=[]))
+                REACTIVE_COMPONENT.set(obj, CacheDict(writebacks=[], disposal=[]))
                 obj.add_event_handler("x-anvil-page-added", add_reactivity)
                 obj.add_event_handler("x-anvil-page-removed", dispose_reactivity)
             else:
@@ -232,21 +236,26 @@ def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=(
     events - should be a single event str or a list of events
     If no events are provided this is the equivalent of a data-binding with no writeback
     """
-    atom, attr = reactive_or_getter, attr_or_effect
+    if not isinstance(component, Component):
+        raise TypeError(
+            "The first argument to writeback should be a component, "
+            f"not {type(component).__name__}"
+        )
+    rc, attr = reactive_or_getter, attr_or_effect
     if type(events) is str:
         events = [events]
-    if isinstance(atom, dict):
+    if isinstance(rc, dict):
         assert attr is not None, "if a dict atom is provided the attr must be a str"
-        getter = partial(atom.__getitem__, attr)
-        setter = partial(atom.__setitem__, attr)
-    elif callable(atom):
-        getter = atom
+        getter = partial(rc.__getitem__, attr)
+        setter = partial(rc.__setitem__, attr)
+    elif callable(rc):
+        getter = rc
         setter = attr
         assert callable(attr), "a selector must be combined with a callable action"
     else:
         assert attr is not None, "if an atom is provided the attr must be a str"
-        getter = partial(getattr, atom, attr)
-        setter = partial(setattr, atom, attr)
+        getter = partial(getattr, rc, attr)
+        setter = partial(setattr, rc, attr)
 
     def action(**event_args):
         setter(getattr(component, prop))
@@ -257,12 +266,12 @@ def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=(
     def render():
         setattr(component, prop, getter())
 
-    if not REACTIVIVE_COMPONENT.has(component):
+    if not REACTIVE_COMPONENT.has(component):
         component.add_event_handler("x-anvil-page-added", add_reactivity)
         component.add_event_handler("x-anvil-page-removed", dispose_reactivity)
-        REACTIVIVE_COMPONENT.set(component, CacheDict(writebacks=[], disposal=[]))
+        REACTIVE_COMPONENT.set(component, CacheDict(writebacks=[], disposal=[]))
 
-    REACTIVIVE_COMPONENT.get(component).writebacks.append(
+    REACTIVE_COMPONENT.get(component).writebacks.append(
         lambda component: create_effect(render)
     )
 
