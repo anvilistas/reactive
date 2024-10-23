@@ -51,7 +51,7 @@ class ReactiveDict(dict):
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
-        self.DICT_BOOL = Computation(bool(dict.__len__(self)))
+        self.DICT_BOOL = Computation(bool(dict.__len__(self)), None)
         self.DICT_SIGNALS = {}
         self.update(*args, **kws)
 
@@ -83,7 +83,7 @@ class ReactiveDict(dict):
             # nothing has changed
             return
 
-        c = self.DICT_SIGNALS.setdefault(key, Computation(current, None, equals=False))
+        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
         dict_setitem(self, key, val)
         self._update_signals(keys=current is MISSING)
         c.write(val)
@@ -114,7 +114,7 @@ class ReactiveDict(dict):
             if rv is MISSING:
                 return default
 
-        c = self.DICT_SIGNALS.setdefault(key, Computation(rv, None, equals=False))
+        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(rv))
         self._update_signals()
         c.write(MISSING)  # force observers to re-run
         return rv
