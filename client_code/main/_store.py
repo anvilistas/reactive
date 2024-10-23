@@ -62,14 +62,15 @@ class ReactiveDict(dict):
     __slots__ = ["DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
 
     def __init__(self, *args, **kws):
-        target = dict(*args, **kws)
-        dict.__init__(self, ((k, as_signal(v, name=k)) for k, v in target.items()))
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
         self.DICT_BOOL = UniqueSignal(
             "dict_bool", bool(dict.__len__(self)), equals=None
         )
+        target = dict(*args, **kws)
+        for k, v in target.items():
+            self[k] = v
 
     def __getitem__(self, key):
         nodes = get_nodes(self, 0)
