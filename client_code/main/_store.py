@@ -117,7 +117,7 @@ class ReactiveDict(dict):
         c = self.DICT_SIGNALS.setdefault(key, StoreSignal(rv))
         self._update_signals()
         c.write(MISSING)  # force observers to re-run
-        return rv
+        return rv._value
 
     def get(self, key, default=None):
         try:
