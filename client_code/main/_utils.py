@@ -7,7 +7,7 @@
 
 from functools import wraps
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 
 class CacheDict:

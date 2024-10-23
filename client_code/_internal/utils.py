@@ -9,7 +9,7 @@ import anvil
 
 from .logging import DEBUG, WARNING, Logger
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 dev_log = Logger("REACTIVE DEV", WARNING, "{name}: {msg}")
 
