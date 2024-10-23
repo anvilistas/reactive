@@ -2,8 +2,7 @@ unique_ids:
   assets:
     standard-page.html: UWA3HF2MGIIO74QRSGBMW3MWTQC5THA2
     theme.css: YFK2CKWK37DJSVSERYV4DNHBXUN6SXUE
-  forms:
-    Form1: '1729645329014361398752686.1466'
+  forms: {}
   modules:
     _internal: QJOJNQ3LV5T76LYMHEORIL6YWZ7WUIBW
     _internal.constants: NXEVYTNHRF4PE4IUCT2JSFFP5FL6BV77
