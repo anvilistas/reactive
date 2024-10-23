@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.10 (01/01/1970)
+## v0.0.10 (23/10/2024)
 ## What's Changed
 ### 🛠 Maintenance
 
