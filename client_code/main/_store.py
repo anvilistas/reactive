@@ -6,7 +6,6 @@
 # This software is published at https://github.com/anvilistas/reactive
 
 from anvil import is_server_side
-from anvil.js.window import WeakMap
 from anvil.server import portable_class
 
 from .._internal.core import Computation, getObserver, isEqual, untrack
@@ -63,16 +62,16 @@ class ReactiveDict(dict):
         self.DICT_BOOL.write(bool(dict.__len__(self)))
 
     def __getitem__(self, key):
-        value = dict_get(self, key, MISSING)
+        val = dict_get(self, key, MISSING)
 
         if getObserver():
-            c = self.DICT_SIGNALS.setdefault(key, StoreSignal(value))
+            c = self.DICT_SIGNALS.setdefault(key, StoreSignal(val))
             c.read()
 
-        if value is MISSING:
+        if val is MISSING:
             raise KeyError(key)
 
-        return value
+        return val
 
     def __setitem__(self, key, val):
         current = dict_get(self, key, MISSING)
@@ -225,7 +224,7 @@ class ReactiveList(list):
         return [v.read() for v in list_iter(self)].__iter__()
 
     def clear(self):
-        if not len(self):
+        if not list_len(self):
             return
         list.clear(self)
         self._update_len()
