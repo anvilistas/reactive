@@ -16,18 +16,23 @@ from ._constants import MISSING
 __version__ = "0.0.9"
 
 # 0: Data, 1: Has
-NODES = [WeakMap(), WeakMap()]
+TRACKING_NODES = WeakMap()
 
 
-def get_nodes(obj, type):
-    node = NODES[type].get(obj)
+class Wrap:
+    def __init__(self, v):
+        self.v = v
+
+
+def get_nodes(obj):
+    node = TRACKING_NODES.get(obj)
     if node is None:
         print("Not in nodes", obj, type)
-        NODES[type].set(obj, {})
-        node = NODES[type].get(obj)
+        node = Wrap({})
+        TRACKING_NODES.set(obj, node)
     else:
         print("ALREADY in nodes", obj, type)
-    return node
+    return node.v
 
 
 def get_node(node, prop, value=None):
@@ -42,9 +47,9 @@ def get_node(node, prop, value=None):
 
 
 def wrap(val):
-    if type(val) is dict: # noqa: E721
+    if type(val) is dict:  # noqa: E721
         return ReactiveDict(val)
-    elif type(val) is list: # noqa: E721
+    elif type(val) is list:  # noqa: E721
         return ReactiveList(val)
     elif type(val) is StoreSignal:
         return val._value
@@ -61,8 +66,10 @@ dict_setitem = dict.__setitem__
 dict_pop = dict.pop
 dict_get = dict.get
 
+
 class Obscure:
     _id = 0
+
     def __init__(self, v):
         self.v = v
         self.id = Obscure._id
@@ -71,24 +78,23 @@ class Obscure:
     def __repr__(self):
         return f"<{self.id}:  {repr(self.v)}>"
 
+
 @portable_class
 class ReactiveDict(dict):
-    __slots__ = ["DICT_ID","DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
+    __slots__ = ["DICT_ID", "DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
 
     def __init__(self, *args, **kws):
-        self.DICT_ID = Obscure(self)
+        self.DICT_ID = Obscure(self)  # because get converted to a dict in js land
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
         self.DICT_BOOL = UniqueSignal(
             "dict_bool", bool(dict.__len__(self)), equals=None
         )
-        target = dict(*args, **kws)
-        for k, v in target.items():
-            self[k] = v
+        self.update(*args, **kws)
 
     def __getitem__(self, key):
-        nodes = get_nodes(self.DICT_ID, 0)
+        nodes = get_nodes(self.DICT_ID)
         tracked = nodes.get(key)
 
         print("READING", self, nodes, tracked, key)
@@ -102,7 +108,7 @@ class ReactiveDict(dict):
             print("NOT TRACKING", self.DICT_ID, key, value)
 
         print("determining whether to track", self, tracked, getObserver(), value)
-        if tracked is None and getObserver() is not None: # and value is not MISSING:
+        if tracked is None and getObserver() is not None:  # and value is not MISSING:
             # TODO i think we we need MISSING here too
             print("YES, we should track", self, key, value)
             value = get_node(nodes, key, value).read()
@@ -123,7 +129,7 @@ class ReactiveDict(dict):
             print("NOTHING HAS CHANGED", current, val)
             return
 
-        nodes = get_nodes(self.DICT_ID, 0)
+        nodes = get_nodes(self.DICT_ID)
         node = get_node(nodes, key, current)
         node.write(val)
         print("NOTHING YET IN SELF", self.DICT_ID, key, val)
@@ -136,7 +142,6 @@ class ReactiveDict(dict):
 
     def __delitem__(self, key):
         self.pop(key)
-
 
     def __contains__(self, key):
         try:
@@ -161,7 +166,7 @@ class ReactiveDict(dict):
             if rv is MISSING:
                 return default
 
-        nodes = get_nodes(self.DICT_ID, 0)
+        nodes = get_nodes(self.DICT_ID)
         node = get_node(nodes, key, rv)
 
         self.DICT_VALS.update()
@@ -178,7 +183,7 @@ class ReactiveDict(dict):
             return default
 
     def setdefault(self, key, default=None):
-        if key not in self:
+        if not dict.__contains__(self, key):
             self[key] = default
         return self[key]
 
@@ -187,8 +192,6 @@ class ReactiveDict(dict):
 
     def __len__(self):
         self.DICT_KEYS.read()
-        # TODO - we probably want a __bool__ here too
-        # that way truthy/falsy won't fire whenever the keys change
         return dict.__len__(self)
 
     def __bool__(self):
@@ -209,8 +212,7 @@ class ReactiveDict(dict):
 
     def __repr__(self):
         self.DICT_ITEMS.read()
-        d = {k: v for k, v in dict.items(self)}
-        return f"ReactiveDict({d})"
+        return f"ReactiveDict({dict.__repr__(self)})"
 
     def __serialize__(self, gbl_data):
         with untrack():
