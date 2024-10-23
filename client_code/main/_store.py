@@ -241,6 +241,11 @@ class ReactiveList(list):
             def key(x):
                 return key_(x._value)
 
+        else:
+
+            def key(x):
+                return x._value
+
         rv = list.sort(self, key=key, reverse=reverse)
         self._update_len()
         return rv
