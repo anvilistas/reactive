@@ -3,9 +3,10 @@ name: Release Drafter
 on:
   pull_request:
     branches:
-      - master
+      - main
     types:
       - closed
+  workflow_dispatch:
 
 permissions:
   contents: read
