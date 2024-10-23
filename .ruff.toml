@@ -1,0 +1,7 @@
+src = ["client_code", "server_code"]
+
+[lint]
+select = ["E", "F", "I001"]
+
+[lint.isort]
+known-third-party = ["anvil"]

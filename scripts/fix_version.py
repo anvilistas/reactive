@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -50,16 +50,28 @@ def update_version_in_file(file_path, current_version):
         lines = content.splitlines()
         insert_position = 0
 
+        wait_for_end_of_import = False
+
         for i, line in enumerate(lines):
-            if (
-                not line
-                or line.startswith("#")
-                or line.startswith("import")
-                or line.startswith("from")
-            ):
+            line = line.strip()
+            if not line or line.startswith("#"):
                 insert_position = i + 1
-            else:
-                break
+                continue
+
+            if line.startswith("import") or line.startswith("from"):
+                wait_for_end_of_import = line.endswith("(")
+                insert_position = i + 1
+                continue
+
+            if wait_for_end_of_import:
+                if not line.endswith(")"):
+                    insert_position = i + 1
+                else:
+                    wait_for_end_of_import = False
+                    insert_position = i + 1
+                continue
+
+            break
 
         lines.insert(insert_position, version_line + "\n")
         updated_content = "\n".join(lines)

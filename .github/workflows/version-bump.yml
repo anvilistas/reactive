@@ -1,0 +1,93 @@
+name: Bump Version
+
+on:
+  workflow_run:
+    workflows: ["Release Drafter"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  bump-version:
+    permissions:
+      contents: write
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Retrieve Draft Releases
+        id: draft
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            const latestDraft = releases.data.find(release => release.draft);
+
+            if (!latestDraft) {
+              core.setOutput('found', 'false');
+            } else {
+              const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)(?:[-_].*)?$/);
+              if (versionMatch) {
+                core.setOutput('version', versionMatch[1]);
+                core.setOutput('found', 'true');
+                core.setOutput('url', latestDraft.html_url)
+              } else {
+                core.setOutput('found', 'false');
+              }
+            }
+
+      - name: Bump Version with bump2version
+        if: steps.draft.outputs.found == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install bump2version
+          bump2version --new-version $VERSION --allow-dirty patch --verbose
+        env:
+          VERSION: ${{ steps.draft.outputs.version }}
+
+      - name: Update Changelog
+        if: steps.draft.outputs.found == 'true'
+        run: npx github-release-notes changelog -o --token=$GITHUB_TOKEN
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Bump version to ${{ steps.draft.outputs.version }} [skip ci]"
+
+      - name: Create or Update Pull Request
+        uses: peter-evans/create-pull-request@v7
+        if: steps.draft.outputs.found == 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version
+          title: "[Bump version] auto-update"
+          commit-message: "Bump version to ${{ steps.draft.outputs.version }} [skip ci]"
+          body: |
+            This PR updates the `__version__` and CHANGELOG.md.
+
+            Please review and merge to apply the version update.
+
+            After merging this PR you should publish the latest release
+            ${{ steps.draft.outputs.url }}
+
+            All releases:
+            https://github.com/${{ github.repository }}/releases
+
+          labels: skip-changelog

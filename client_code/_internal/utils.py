@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2023-2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
 
 import anvil
 
-from .logging import DEBUG, INFO, WARNING, Logger
+from .logging import DEBUG, WARNING, Logger
 
 __version__ = "0.0.9"
 
