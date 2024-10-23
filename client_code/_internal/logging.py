@@ -15,7 +15,7 @@
 import sys
 from datetime import datetime as _datetime
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 NOTSET = 0
 DEBUG = 1

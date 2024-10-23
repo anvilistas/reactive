@@ -10,7 +10,7 @@ import anvil
 from ._computations import StoreSignal
 from ._store import ReactiveDict
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__
