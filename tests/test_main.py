@@ -21,8 +21,8 @@ is_testing.__code__ = (lambda: True).__code__
 class RC:
     bar = signal(0)
 
-    def __init__(self):
-        self.foo = 42
+    def __init__(self, foo):
+        self.foo = foo
 
     def inc(self):
         self.foo += 1
@@ -47,7 +47,7 @@ class RC:
 
 
 def test_reactive_class():
-    rc = RC()
+    rc = RC(42)
 
     # the effect is still callable
     rc.update_foo()
