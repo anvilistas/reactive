@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2023-2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -74,17 +74,6 @@ def wrap_dunder(dunder):
         return dunder(self._v, *args, **kws)
 
     return wrapper
-
-
-class CacheDict:
-    __slots__ = ["_v", "__dict__"]
-
-    def __init__(self, *args, **kws):
-        self._v = dict(*args, **kws)
-        self.__dict__ = self._v
-
-    def __getattr__(self, attr):
-        return getattr(self._v, attr)
 
 
 for dunder in dict.__dict__:
@@ -238,7 +227,8 @@ def noop_method(self):
 
 def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=()):
     """create a writeback between a component property and an atom attribute
-    or bind the property to an atom selector and call an action when the component property is changed
+    or bind the property to an atom selector
+    and call an action when the component property is changed
     events - should be a single event str or a list of events
     If no events are provided this is the equivalent of a data-binding with no writeback
     """
@@ -278,6 +268,7 @@ def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=(
 
 
 def bind(component, prop, reactive_or_getter, attr=MISSING):
-    """create a data-binding between an component property and an atom and its attribute"""
+    """create a data-binding between an component property
+    and an atom and its attribute"""
     attr = noop if attr is MISSING else attr
     return writeback(component, prop, reactive_or_getter, attr)

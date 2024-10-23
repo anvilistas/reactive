@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2023-2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -50,7 +50,8 @@ def reactive_class(base):
 
     # This is a bit of faff
     # python setattr doesn't call __dict__.__setitem__
-    # instead uses internal .__setitem__ so we let that happen before putting it back into the reactive __dict__
+    # instead uses internal .__setitem__ so we let that happen
+    # before putting it back into the reactive __dict__
     def __setattr__(self, attr, val):
         d = self.__dict__
         if type(d) is dict:

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2023-2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -14,8 +14,6 @@
 
 import sys
 from datetime import datetime as _datetime
-from functools import wraps
-from time import time as _time
 
 __version__ = "0.0.9"
 
@@ -89,23 +87,18 @@ class Logger:
         self._write(out)
 
     def debug(self, msg):
-        """outputs the msg only if the level is set to logging.DEBUG"""
         self.log(DEBUG, msg)
 
     def info(self, msg):
-        """outputs the msg only if the level is set to logging.INFO or logging.DEBUG"""
         self.log(INFO, msg)
 
     def warning(self, msg):
-        """outputs the msg only if the level is set to logging.INFO, logging.DEBUG or logging.WARNING"""
         self.log(WARNING, msg)
 
     def error(self, msg):
-        """outputs the msg only if the level is set to logging.ERROR or below"""
         self.log(ERROR, msg)
 
     def critical(self, msg):
-        """always outputs a message"""
         self.log(WARNING, msg)
 
     def __repr__(self):

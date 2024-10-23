@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Anvilistas project team members listed at
+# Copyright (c) 2023-2024 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
 
+# ruff: noqa: F401
 from .._internal.signal import create_effect
 from ._primitives import bind, computed, effect, render_effect, writeback
 from ._reactive_class import reactive_class, reactive_instance

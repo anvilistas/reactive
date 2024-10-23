@@ -1,0 +1,61 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'type:bug'
+  - title: '🚀 Features'
+    labels:
+      - 'type: feature'
+  - title: '💥 Breaking Changes'
+    labels:
+      - 'type: breaking'
+  - title: '🛠 Maintenance'
+    labels:
+      - 'type: maintenance'
+  - title: '📖 Documentation'
+    labels:
+      - 'type: docs'
+  - title: 'Other changes'
+change-template: '- $TITLE [#$NUMBER]($URL)'
+exclude-labels:
+  - 'skip-changelog'
+version-resolver:
+  major:
+    labels:
+      - 'type: breaking'
+  minor:
+    labels:
+      - 'type: feature'
+  patch:
+    labels:
+      - 'type: bug'
+      - 'type: docs'
+      - 'type: maintenance'
+  default: patch
+category-template: '### $TITLE'
+template: |
+  ## What's Changed
+  $CHANGES
+
+  ## Contributors
+  Thanks to all our contributors! 🎉
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+autolabeler:
+  - label: 'type: docs'
+    files:
+      - '*.md'
+  - label: 'type: bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/fix/i'
+  - label: 'type: feature'
+    branch:
+      - '/feat\/.+/'
+  - label: 'skip-changelog'
+    branch:
+      - '/pre-commit-ci-.+/'
