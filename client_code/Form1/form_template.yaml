@@ -1,0 +1,12 @@
+components:
+- event_bindings: {click: button_1_click}
+  layout_properties: {grid_position: 'FPCOAA,ZAVJLR'}
+  name: button_1
+  properties: {text: button_1}
+  type: Button
+- layout_properties: {grid_position: 'TCLCZS,LONYLT'}
+  name: label_1
+  properties: {}
+  type: Label
+container: {type: ColumnPanel}
+is_package: true

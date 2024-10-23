@@ -1,8 +1,10 @@
 allow_embedding: false
-package_name: anvil_reactive
 name: anvil-reactive
-runtime_options: {version: 2, client_version: '3', server_version: python3-full, server_spec: null}
+package_name: anvil_reactive
+runtime_options: {client_version: '3', server_spec: null, server_version: python3-full, version: 2}
 services:
-- source: /runtime/services/tables.yml
-  client_config: {}
+- client_config: {}
   server_config: {}
+  source: /runtime/services/tables.yml
+startup: {module: Form1, type: form}
+startup_form: null

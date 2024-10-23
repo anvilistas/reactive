@@ -74,13 +74,13 @@ class ReactiveDict(dict):
     def __getitem__(self, key):
         nodes = get_nodes(self, 0)
         tracked = nodes.get(key)
-        if tracked is None:
-            print("no tracked")
+        if tracked is not None:
+            print("tracked")
             value = tracked.read()
         else:
             # TODO we don't want to throw here
             value = dict_get(self, key, MISSING)
-            print("has tracked", value)
+            print("not tracked tracked", value)
 
         if tracked is None and getObserver() is not None and value is not MISSING:
             # TODO i think we we need MISSING here too
