@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.0.11 (01/01/1970)
+## v0.0.12 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Add tests and resulting fixes [#20](https://github.com/anvilistas/reactive/pull/20)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.0.11...v0.0.12
+
+---
+
+## v0.0.11 (23/10/2024)
 ## What's Changed
 ### 🐛 Bug Fixes
 
