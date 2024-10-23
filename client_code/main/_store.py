@@ -15,7 +15,7 @@ from ._constants import MISSING
 
 __version__ = "0.0.9"
 
-# 0: Data, 1: Has
+# A WeakMap of reactive_dicts to a dict of {key: Computation}
 TRACKING_NODES = WeakMap()
 
 
@@ -30,18 +30,14 @@ def get_nodes(obj):
         print("Not in nodes", obj, type)
         node = Wrap({})
         TRACKING_NODES.set(obj, node)
-    else:
-        print("ALREADY in nodes", obj, type)
     return node.v
 
 
 def get_node(node, prop, value=None):
     if prop in node:
-        print("PROP ALREADY IN NODE", node, prop)
         return node[prop]
 
     c = Computation(value, None, equals=False)
-    print("PROP NOT IN NODE", node, prop, c)
     node[prop] = c
     return c
 
@@ -67,50 +63,35 @@ dict_pop = dict.pop
 dict_get = dict.get
 
 
-class Obscure:
-    _id = 0
-
-    def __init__(self, v):
-        self.v = v
-        self.id = Obscure._id
-        Obscure._id += 1
-
-    def __repr__(self):
-        return f"<{self.id}:  {repr(self.v)}>"
-
-
 @portable_class
 class ReactiveDict(dict):
     __slots__ = ["DICT_ID", "DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
 
     def __init__(self, *args, **kws):
-        self.DICT_ID = Obscure(self)  # because get converted to a dict in js land
+        self.DICT_ID = object()
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
-        self.DICT_BOOL = UniqueSignal(
-            "dict_bool", bool(dict.__len__(self)), equals=None
-        )
+        self.DICT_BOOL = Computation(bool(dict.__len__(self)), None, equals=None)
         self.update(*args, **kws)
+
+    def _update_signals(self, keys=True):
+        if keys:
+            self.DICT_KEYS.update()
+        self.DICT_VALS.update()
+        self.DICT_ITEMS.update()
+        self.DICT_BOOL.write(bool(dict.__len__(self)))
 
     def __getitem__(self, key):
         nodes = get_nodes(self.DICT_ID)
         tracked = nodes.get(key)
 
-        print("READING", self, nodes, tracked, key)
-
         if tracked is not None:
-            print("ALREADY TRACKING", self.DICT_ID, tracked, key)
             value = tracked.read()
         else:
-            # TODO we don't want to throw here
             value = dict_get(self, key, MISSING)
-            print("NOT TRACKING", self.DICT_ID, key, value)
 
-        print("determining whether to track", self, tracked, getObserver(), value)
-        if tracked is None and getObserver() is not None:  # and value is not MISSING:
-            # TODO i think we we need MISSING here too
-            print("YES, we should track", self, key, value)
+        if tracked is None and getObserver() is not None:
             value = get_node(nodes, key, value).read()
 
         if value is MISSING:
@@ -119,26 +100,19 @@ class ReactiveDict(dict):
         return value
 
     def __setitem__(self, key, val):
-        print("SETTING", self.DICT_ID, key, val)
         current = dict_get(self, key, MISSING)
 
         val = wrap(val)
 
         if current is not MISSING and isEqual(current, val):
             # nothing has changed
-            print("NOTHING HAS CHANGED", current, val)
             return
 
         nodes = get_nodes(self.DICT_ID)
         node = get_node(nodes, key, current)
-        node.write(val)
-        print("NOTHING YET IN SELF", self.DICT_ID, key, val)
         dict_setitem(self, key, val)
-
-        self.DICT_VALS.update()
-        self.DICT_ITEMS.update()
-        self.DICT_KEYS.update()
-        self.DICT_BOOL.update(bool(dict.__len__(self)))
+        self._update_signals(keys=current is MISSING)
+        node.write(val)
 
     def __delitem__(self, key):
         self.pop(key)
@@ -168,11 +142,7 @@ class ReactiveDict(dict):
 
         nodes = get_nodes(self.DICT_ID)
         node = get_node(nodes, key, rv)
-
-        self.DICT_VALS.update()
-        self.DICT_ITEMS.update()
-        self.DICT_KEYS.update()
-        self.DICT_BOOL.update(bool(dict.__len__(self)))
+        self._update_signals()
         node.write(MISSING)  # force observers to re-run
         return rv
 
@@ -239,13 +209,11 @@ class ReactiveList(list):
         target = list(*args, **kws)
         list.__init__(self, (as_signal(v) for v in target))
         self.LIST_LEN = UniqueSignal("list_len")
-        self.LIST_BOOL = UniqueSignal(
-            "list_bool", bool(list.__len__(self)), equals=None
-        )
+        self.LIST_BOOL = Computation(bool(list.__len__(self)), None, equals=None)
 
     def _update_len(self):
         self.LIST_LEN.update()
-        self.LIST_BOOL.update(bool(list.__len__(self)))
+        self.LIST_BOOL.write(bool(list.__len__(self)))
 
     def __getitem__(self, i):
         rv = list.__getitem__(self, i)
