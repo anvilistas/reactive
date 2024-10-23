@@ -11,7 +11,7 @@ from ._computations import StoreSignal
 from ._store import ReactiveDict
 from ._utils import is_testing
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__
