@@ -92,15 +92,25 @@ class ReactiveDict(dict):
         return value
 
     def __setitem__(self, key, val):
-        current = dict.get(self, key)
+        current = dict_get(self, key, MISSING)
 
-        if type(current) is StoreSignal:
-            if not isEqual(current._value, val):
-                self.DICT_VALS.update()
-                self.DICT_ITEMS.update()
-            return current.write(wrap(val))
+        if current is not MISSING:
+            # nothing has changed
+            if isEqual(current, val):
+                print("nothing has changed")
+                return
+            #     self.DICT_VALS.update()
+            #     self.DICT_ITEMS.update()
+            # return current.write(wrap(val))
+            print("something has changed, updating nodes")
+            nodes = get_nodes(self, 1)
+            node = get_node(nodes, key, current)
+            node.write(val)
 
-        val = as_signal(val, name=key)
+        else:
+            nodes = get_nodes(self, 1)
+            node = get_node(nodes, key, val)
+
         dict_setitem(self, key, val)
 
         self.DICT_VALS.update()
