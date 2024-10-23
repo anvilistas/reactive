@@ -6,13 +6,15 @@ on:
       - main
     types:
       - closed
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   update_release_draft:
+    if: >
+      github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
     permissions:
       contents: write
       pull-requests: write
