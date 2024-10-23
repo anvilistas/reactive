@@ -15,31 +15,6 @@ from ._constants import MISSING
 
 __version__ = "0.0.9"
 
-# A WeakMap of reactive_dicts to a dict of {key: Computation}
-TRACKING_NODES = WeakMap()
-
-
-class Wrap:
-    def __init__(self, v):
-        self.v = v
-
-
-def get_nodes(obj):
-    node = TRACKING_NODES.get(obj)
-    if node is None:
-        node = Wrap({})
-        TRACKING_NODES.set(obj, node)
-    return node.v
-
-
-def get_node(node, prop, value=None):
-    if prop in node:
-        return node[prop]
-
-    c = Computation(value, None, equals=False)
-    node[prop] = c
-    return c
-
 
 def wrap(val):
     if type(val) is dict:  # noqa: E721
@@ -64,14 +39,20 @@ dict_get = dict.get
 
 @portable_class
 class ReactiveDict(dict):
-    __slots__ = ["DICT_ID", "DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
+    __slots__ = [
+        "DICT_SIGNALS",
+        "DICT_KEYS",
+        "DICT_VALS",
+        "DICT_ITEMS",
+        "DICT_BOOL",
+    ]
 
     def __init__(self, *args, **kws):
-        self.DICT_ID = object()
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
         self.DICT_BOOL = Computation(bool(dict.__len__(self)), None, equals=None)
+        self.DICT_SIGNALS = {}
         self.update(*args, **kws)
 
     def _update_signals(self, keys=True):
@@ -82,16 +63,13 @@ class ReactiveDict(dict):
         self.DICT_BOOL.write(bool(dict.__len__(self)))
 
     def __getitem__(self, key):
-        nodes = get_nodes(self.DICT_ID)
-        tracked = nodes.get(key)
+        value = dict_get(self, key, MISSING)
 
-        if tracked is not None:
-            value = tracked.read()
-        else:
-            value = dict_get(self, key, MISSING)
-
-        if tracked is None and getObserver() is not None:
-            value = get_node(nodes, key, value).read()
+        if getObserver():
+            c = self.DICT_SIGNALS.setdefault(
+                key, StoreSignal(value, None, equals=False)
+            )
+            c.read()
 
         if value is MISSING:
             raise KeyError(key)
@@ -107,11 +85,10 @@ class ReactiveDict(dict):
             # nothing has changed
             return
 
-        nodes = get_nodes(self.DICT_ID)
-        node = get_node(nodes, key, current)
+        c = self.DICT_SIGNALS.setdefault(key, Computation(current, None, equals=False))
         dict_setitem(self, key, val)
         self._update_signals(keys=current is MISSING)
-        node.write(val)
+        c.write(val)
 
     def __delitem__(self, key):
         self.pop(key)
@@ -139,10 +116,9 @@ class ReactiveDict(dict):
             if rv is MISSING:
                 return default
 
-        nodes = get_nodes(self.DICT_ID)
-        node = get_node(nodes, key, rv)
+        c = self.DICT_SIGNALS.setdefault(key, Computation(rv, None, equals=False))
         self._update_signals()
-        node.write(MISSING)  # force observers to re-run
+        c.write(MISSING)  # force observers to re-run
         return rv
 
     def get(self, key, default=None):
