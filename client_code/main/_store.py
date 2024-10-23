@@ -27,7 +27,6 @@ class Wrap:
 def get_nodes(obj):
     node = TRACKING_NODES.get(obj)
     if node is None:
-        print("Not in nodes", obj, type)
         node = Wrap({})
         TRACKING_NODES.set(obj, node)
     return node.v
