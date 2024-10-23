@@ -59,7 +59,6 @@ def reactive_class(base):
         prev = None
         if attr in d:
             prev = dict_getitem(d, attr)
-            assert type(prev) is StoreSignal, "expected a signal"
         old_setattr(self, attr, val)
         if attr not in d:
             return
