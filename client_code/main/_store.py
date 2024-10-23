@@ -51,7 +51,7 @@ class ReactiveDict(dict):
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
-        self.DICT_BOOL = Computation(bool(dict.__len__(self)), None, equals=None)
+        self.DICT_BOOL = Computation(bool(dict.__len__(self)))
         self.DICT_SIGNALS = {}
         self.update(*args, **kws)
 
@@ -66,9 +66,7 @@ class ReactiveDict(dict):
         value = dict_get(self, key, MISSING)
 
         if getObserver():
-            c = self.DICT_SIGNALS.setdefault(
-                key, StoreSignal(value, None, equals=False)
-            )
+            c = self.DICT_SIGNALS.setdefault(key, StoreSignal(value))
             c.read()
 
         if value is MISSING:
@@ -184,7 +182,7 @@ class ReactiveList(list):
         target = list(*args, **kws)
         list.__init__(self, (as_signal(v) for v in target))
         self.LIST_LEN = UniqueSignal("list_len")
-        self.LIST_BOOL = Computation(bool(list.__len__(self)), None, equals=None)
+        self.LIST_BOOL = Computation(bool(list.__len__(self)), None)
 
     def _update_len(self):
         self.LIST_LEN.update()
