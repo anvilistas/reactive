@@ -42,3 +42,7 @@ for dunder in dict.__dict__:
 
 def noop(*args, **kws):
     pass
+
+
+def is_testing():
+    return False

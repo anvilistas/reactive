@@ -99,10 +99,10 @@ class Effect(Computation):
 
         if self._state is STATE_CLEAN:
             effects.append(self)
-            if not scheduledEffects:
-                flushEffects()
 
         self._state = state
+        if not scheduledEffects and effects:
+            flushEffects()
 
     def write(self, value, flags=0):
         self._value = value
@@ -128,10 +128,11 @@ class RenderEffect(Computation):
 
         if self._state is STATE_CLEAN:
             renderEffects.append(self)
-            if not scheduledEffects:
-                flushEffects()
 
         self._state = state
+
+        if not scheduledEffects and renderEffects:
+            flushEffects()
 
     def write(self, value, flags=0):
         self._value = value
