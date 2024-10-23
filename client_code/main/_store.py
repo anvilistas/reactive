@@ -86,6 +86,7 @@ class ReactiveDict(dict):
         dict_setitem(self, key, v)
         self._update_signals(keys=current is MISSING)
         v.write(val)
+        print(v)
 
     def __delitem__(self, key):
         self.pop(key)
