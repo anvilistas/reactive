@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.11 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: reactive class regression [#18](https://github.com/anvilistas/reactive/pull/18)
+- fix: error message when failing to sort values in a reactive list [#16](https://github.com/anvilistas/reactive/pull/16)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@github-actions, @github-actions[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.0.10...v0.0.11
+
+---
+
 ## v0.0.10 (23/10/2024)
 ## What's Changed
 ### 🛠 Maintenance
