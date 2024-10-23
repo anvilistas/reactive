@@ -8,7 +8,7 @@
 from anvil import is_server_side
 from anvil.server import portable_class
 
-from .._internal.core import isEqual, untrack
+from .._internal.core import Computation, getObserver, isEqual, untrack
 from ._computations import StoreSignal, UniqueSignal
 from ._constants import MISSING
 
@@ -16,9 +16,9 @@ __version__ = "0.0.9"
 
 
 def wrap(val):
-    if type(val) is dict:
+    if type(val) is dict:  # noqa: E721
         return ReactiveDict(val)
-    elif type(val) is list:
+    elif type(val) is list:  # noqa: E721
         return ReactiveList(val)
     elif type(val) is StoreSignal:
         return val._value
@@ -33,45 +33,69 @@ def as_signal(val, name=None):
 dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__
 dict_pop = dict.pop
+dict_get = dict.get
 
 
 @portable_class
 class ReactiveDict(dict):
-    __slots__ = ["DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
+    __slots__ = [
+        "DICT_SIGNALS",
+        "DICT_KEYS",
+        "DICT_VALS",
+        "DICT_ITEMS",
+        "DICT_BOOL",
+    ]
 
     def __init__(self, *args, **kws):
-        target = dict(*args, **kws)
-        dict.__init__(self, ((k, as_signal(v, name=k)) for k, v in target.items()))
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
-        self.DICT_BOOL = UniqueSignal(
-            "dict_bool", bool(dict.__len__(self)), equals=None
-        )
+        self.DICT_BOOL = Computation(bool(dict.__len__(self)), None)
+        self.DICT_SIGNALS = {}
+        self.update(*args, **kws)
 
-    def __getitem__(self, key):
-        res = dict_getitem(self, key)
-        return res.read()
-
-    def __setitem__(self, key, val):
-        current = dict.get(self, key)
-
-        if type(current) is StoreSignal:
-            if not isEqual(current._value, val):
-                self.DICT_VALS.update()
-                self.DICT_ITEMS.update()
-            return current.write(wrap(val))
-
-        val = as_signal(val, name=key)
-        dict_setitem(self, key, val)
-
+    def _update_signals(self, keys=True):
+        if keys:
+            self.DICT_KEYS.update()
+            self.DICT_BOOL.write(bool(dict.__len__(self)))
         self.DICT_VALS.update()
         self.DICT_ITEMS.update()
-        self.DICT_KEYS.update()
-        self.DICT_BOOL.update(bool(dict.__len__(self)))
+
+    def __getitem__(self, key):
+        val = dict_get(self, key, MISSING)
+
+        if getObserver():
+            c = self.DICT_SIGNALS.setdefault(key, StoreSignal(val))
+            c.read()
+
+        if val is MISSING:
+            raise KeyError(key)
+
+        return val
+
+    def __setitem__(self, key, val):
+        current = dict_get(self, key, MISSING)
+
+        val = wrap(val)
+
+        if current is not MISSING and isEqual(current, val):
+            # nothing has changed
+            return
+
+        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
+        dict_setitem(self, key, val)
+        self._update_signals(keys=current is MISSING)
+        c.write(val)
 
     def __delitem__(self, key):
         self.pop(key)
+
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
 
     def update(self, *args, **kws):
         for k, v in dict(*args, **kws).items():
@@ -83,18 +107,15 @@ class ReactiveDict(dict):
 
     def pop(self, key, default=MISSING):
         if default is MISSING:
-            res = dict_pop(self, key)
+            rv = dict_pop(self, key)
         else:
-            res = dict_pop(self, key, MISSING)
-            if res is MISSING:
+            rv = dict_pop(self, key, MISSING)
+            if rv is MISSING:
                 return default
 
-        self.DICT_VALS.update()
-        self.DICT_ITEMS.update()
-        self.DICT_KEYS.update()
-        self.DICT_BOOL.update(bool(dict.__len__(self)))
-        rv = res._value
-        res.write(MISSING)  # force observers to re-run
+        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(rv))
+        self._update_signals()
+        c.write(MISSING)  # force observers to re-run
         return rv
 
     def get(self, key, default=None):
@@ -104,7 +125,7 @@ class ReactiveDict(dict):
             return default
 
     def setdefault(self, key, default=None):
-        if key not in self:
+        if not dict.__contains__(self, key):
             self[key] = default
         return self[key]
 
@@ -113,8 +134,6 @@ class ReactiveDict(dict):
 
     def __len__(self):
         self.DICT_KEYS.read()
-        # TODO - we probably want a __bool__ here too
-        # that way truthy/falsy won't fire whenever the keys change
         return dict.__len__(self)
 
     def __bool__(self):
@@ -135,8 +154,7 @@ class ReactiveDict(dict):
 
     def __repr__(self):
         self.DICT_ITEMS.read()
-        d = {k: v._value for k, v in dict.items(self)}
-        return f"ReactiveDict({d})"
+        return f"ReactiveDict({dict.__repr__(self)})"
 
     def __serialize__(self, gbl_data):
         with untrack():
@@ -163,13 +181,11 @@ class ReactiveList(list):
         target = list(*args, **kws)
         list.__init__(self, (as_signal(v) for v in target))
         self.LIST_LEN = UniqueSignal("list_len")
-        self.LIST_BOOL = UniqueSignal(
-            "list_bool", bool(list.__len__(self)), equals=None
-        )
+        self.LIST_BOOL = Computation(bool(list.__len__(self)), None)
 
     def _update_len(self):
         self.LIST_LEN.update()
-        self.LIST_BOOL.update(bool(list.__len__(self)))
+        self.LIST_BOOL.write(bool(list.__len__(self)))
 
     def __getitem__(self, i):
         rv = list.__getitem__(self, i)
@@ -208,7 +224,7 @@ class ReactiveList(list):
         return [v.read() for v in list_iter(self)].__iter__()
 
     def clear(self):
-        if not len(self):
+        if not list_len(self):
             return
         list.clear(self)
         self._update_len()

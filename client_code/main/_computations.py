@@ -9,18 +9,15 @@ from anvil import is_server_side
 from anvil.server import portable_class
 
 from .._internal.core import Computation
-from ._constants import MISSING
 
 __version__ = "0.0.9"
 
 
 class UniqueSignal(Computation):
-    def __init__(self, name=None, value=0, equals=False):
-        super().__init__(value, None, equals=equals, name=name or "unique")
+    def __init__(self, name=None):
+        super().__init__(0, None, equals=False, name=name or "unique")
 
-    def update(self, value=MISSING):
-        if value is not MISSING:
-            return self.write(value)
+    def update(self):
         return self.write(self._value + 1)
 
 

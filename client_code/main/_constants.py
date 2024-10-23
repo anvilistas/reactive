@@ -7,4 +7,10 @@
 
 __version__ = "0.0.9"
 
-MISSING = object()
+
+class _MISSING:
+    def __repr__(self):
+        return "<MISSING object>"
+
+
+MISSING = _MISSING()
