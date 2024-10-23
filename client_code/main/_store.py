@@ -22,24 +22,29 @@ NODES = [WeakMap(), WeakMap()]
 def get_nodes(obj, type):
     node = NODES[type].get(obj)
     if node is None:
-        node = {}
-        NODES[type].set(obj, node)
+        print("Not in nodes", obj, type)
+        NODES[type].set(obj, {})
+        node = NODES[type].get(obj)
+    else:
+        print("ALREADY in nodes", obj, type)
     return node
 
 
 def get_node(node, prop, value=None):
     if prop in node:
+        print("PROP ALREADY IN NODE", node, prop)
         return node[prop]
 
     c = Computation(value, None, equals=False)
+    print("PROP NOT IN NODE", node, prop, c)
     node[prop] = c
     return c
 
 
 def wrap(val):
-    if type(val) is dict:
+    if type(val) is dict: # noqa: E721
         return ReactiveDict(val)
-    elif type(val) is list:
+    elif type(val) is list: # noqa: E721
         return ReactiveList(val)
     elif type(val) is StoreSignal:
         return val._value
@@ -56,12 +61,22 @@ dict_setitem = dict.__setitem__
 dict_pop = dict.pop
 dict_get = dict.get
 
+class Obscure:
+    _id = 0
+    def __init__(self, v):
+        self.v = v
+        self.id = Obscure._id
+        Obscure._id += 1
+
+    def __repr__(self):
+        return f"<{self.id}:  {repr(self.v)}>"
 
 @portable_class
 class ReactiveDict(dict):
-    __slots__ = ["DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
+    __slots__ = ["DICT_ID","DICT_KEYS", "DICT_VALS", "DICT_ITEMS", "DICT_BOOL"]
 
     def __init__(self, *args, **kws):
+        self.DICT_ID = Obscure(self)
         self.DICT_KEYS = UniqueSignal("dict_keys")
         self.DICT_VALS = UniqueSignal("dict_vals")
         self.DICT_ITEMS = UniqueSignal("dict_items")
@@ -73,18 +88,23 @@ class ReactiveDict(dict):
             self[k] = v
 
     def __getitem__(self, key):
-        nodes = get_nodes(self, 0)
+        nodes = get_nodes(self.DICT_ID, 0)
         tracked = nodes.get(key)
+
+        print("READING", self, nodes, tracked, key)
+
         if tracked is not None:
-            print("tracked")
+            print("ALREADY TRACKING", self.DICT_ID, tracked, key)
             value = tracked.read()
         else:
             # TODO we don't want to throw here
             value = dict_get(self, key, MISSING)
-            print("not tracked tracked", value)
+            print("NOT TRACKING", self.DICT_ID, key, value)
 
-        if tracked is None and getObserver() is not None and value is not MISSING:
+        print("determining whether to track", self, tracked, getObserver(), value)
+        if tracked is None and getObserver() is not None: # and value is not MISSING:
             # TODO i think we we need MISSING here too
+            print("YES, we should track", self, key, value)
             value = get_node(nodes, key, value).read()
 
         if value is MISSING:
@@ -93,25 +113,20 @@ class ReactiveDict(dict):
         return value
 
     def __setitem__(self, key, val):
+        print("SETTING", self.DICT_ID, key, val)
         current = dict_get(self, key, MISSING)
 
-        if current is not MISSING:
+        val = wrap(val)
+
+        if current is not MISSING and isEqual(current, val):
             # nothing has changed
-            if isEqual(current, val):
-                print("nothing has changed")
-                return
-            #     self.DICT_VALS.update()
-            #     self.DICT_ITEMS.update()
-            # return current.write(wrap(val))
-            print("something has changed, updating nodes")
-            nodes = get_nodes(self, 1)
-            node = get_node(nodes, key, current)
-            node.write(val)
+            print("NOTHING HAS CHANGED", current, val)
+            return
 
-        else:
-            nodes = get_nodes(self, 1)
-            node = get_node(nodes, key, val)
-
+        nodes = get_nodes(self.DICT_ID, 0)
+        node = get_node(nodes, key, current)
+        node.write(val)
+        print("NOTHING YET IN SELF", self.DICT_ID, key, val)
         dict_setitem(self, key, val)
 
         self.DICT_VALS.update()
@@ -121,6 +136,14 @@ class ReactiveDict(dict):
 
     def __delitem__(self, key):
         self.pop(key)
+
+
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
 
     def update(self, *args, **kws):
         for k, v in dict(*args, **kws).items():
@@ -132,18 +155,20 @@ class ReactiveDict(dict):
 
     def pop(self, key, default=MISSING):
         if default is MISSING:
-            res = dict_pop(self, key)
+            rv = dict_pop(self, key)
         else:
-            res = dict_pop(self, key, MISSING)
-            if res is MISSING:
+            rv = dict_pop(self, key, MISSING)
+            if rv is MISSING:
                 return default
+
+        nodes = get_nodes(self.DICT_ID, 0)
+        node = get_node(nodes, key, rv)
 
         self.DICT_VALS.update()
         self.DICT_ITEMS.update()
         self.DICT_KEYS.update()
         self.DICT_BOOL.update(bool(dict.__len__(self)))
-        rv = res._value
-        res.write(MISSING)  # force observers to re-run
+        node.write(MISSING)  # force observers to re-run
         return rv
 
     def get(self, key, default=None):
@@ -184,7 +209,7 @@ class ReactiveDict(dict):
 
     def __repr__(self):
         self.DICT_ITEMS.read()
-        d = {k: v._value for k, v in dict.items(self)}
+        d = {k: v for k, v in dict.items(self)}
         return f"ReactiveDict({d})"
 
     def __serialize__(self, gbl_data):
