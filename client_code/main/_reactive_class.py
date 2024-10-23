@@ -44,6 +44,7 @@ def reactive_class(base):
 
     def __getattribute__(self, attr):
         rv = old_getattr(self, attr)
+        print(rv)
         if type(rv) is StoreSignal:
             return rv.read()
         return rv
