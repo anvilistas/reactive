@@ -1,6 +1,17 @@
-from ._anvil_designer import Form1Template
+# SPDX-License-Identifier: MIT
+#
+# Copyright (c) 2024 Anvilistas project team members listed at
+# https://github.com/anvilistas/reactive/graphs/contributors
+#
+# This software is published at https://github.com/anvilistas/reactive
+
 from anvil import *
+
 from ..main import reactive_class, render_effect
+from ._anvil_designer import Form1Template
+
+
+__version__ = "0.0.9"
 
 @reactive_class
 class Form1(Form1Template):
