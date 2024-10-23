@@ -71,21 +71,24 @@ class ReactiveDict(dict):
         if val is MISSING:
             raise KeyError(key)
 
-        return val
+        return val.read()
 
     def __setitem__(self, key, val):
         current = dict_get(self, key, MISSING)
 
         val = wrap(val)
 
-        if current is not MISSING and isEqual(current, val):
+        if type(current) is StoreSignal:
+            current = current._value
+
+        if isEqual(current, val):
             # nothing has changed
             return
 
-        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
-        dict_setitem(self, key, val)
+        sig = self.DICT_SIGNALS.setdefault(key, StoreSignal(current))
+        dict_setitem(self, key, sig)
         self._update_signals(keys=current is MISSING)
-        c.write(val)
+        sig.write(val)
 
     def __delitem__(self, key):
         self.pop(key)
@@ -107,15 +110,15 @@ class ReactiveDict(dict):
 
     def pop(self, key, default=MISSING):
         if default is MISSING:
-            rv = dict_pop(self, key)
+            res = dict_pop(self, key)
         else:
-            rv = dict_pop(self, key, MISSING)
-            if rv is MISSING:
+            res = dict_pop(self, key, MISSING)
+            if res is MISSING:
                 return default
 
-        c = self.DICT_SIGNALS.setdefault(key, StoreSignal(rv))
         self._update_signals()
-        c.write(MISSING)  # force observers to re-run
+        rv = res._value
+        res.write(MISSING)  # force observers to re-run
         return rv
 
     def get(self, key, default=None):
@@ -154,7 +157,8 @@ class ReactiveDict(dict):
 
     def __repr__(self):
         self.DICT_ITEMS.read()
-        return f"ReactiveDict({dict.__repr__(self)})"
+        d = {k: v._value for k, v in dict.items(self)}
+        return f"ReactiveDict({d})"
 
     def __serialize__(self, gbl_data):
         with untrack():

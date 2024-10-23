@@ -15,6 +15,7 @@ __version__ = "0.0.10"
 dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__
 dict_pop = dict.pop
+dict_contains = dict.__contains__
 
 object_new = object.__new__
 
@@ -61,7 +62,7 @@ def reactive_class(base):
             prev = dict_getitem(d, attr)
             assert type(prev) is StoreSignal, "expected a signal"
         old_setattr(self, attr, val)
-        if attr not in d:
+        if not dict_contains(d, attr):
             return
         val = dict_pop(d, attr)
         if prev is not None:
