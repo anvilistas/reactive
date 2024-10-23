@@ -245,15 +245,15 @@ def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=(
     if type(events) is str:
         events = [events]
     if isinstance(rc, dict):
-        assert attr is not None, "if a dict atom is provided the attr must be a str"
+        assert attr is not None, "if a dict is provided the attr must be a str"
         getter = partial(rc.__getitem__, attr)
         setter = partial(rc.__setitem__, attr)
     elif callable(rc):
         getter = rc
         setter = attr
-        assert callable(attr), "a selector must be combined with a callable action"
+        assert callable(attr), "a getter must be combined with a callable effect"
     else:
-        assert attr is not None, "if an atom is provided the attr must be a str"
+        assert attr is not None, "if an object is provided the attr must be a str"
         getter = partial(getattr, rc, attr)
         setter = partial(setattr, rc, attr)
 
