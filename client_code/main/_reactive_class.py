@@ -97,15 +97,11 @@ def walk_slot_descriptors(cls, descriptor_type):
 
 
 def override_slots(cls):
-    # walks all the slots
-    # checks whether the slot on the class is a getter descriptor
-    # if it is, then we replace the slot with a getter descriptor that wraps the signal
     for slot, descriptor in walk_slot_descriptors(cls, get_set_descriptor):
         setattr(cls, slot, SignalGetterDescriptor(descriptor))
 
 
 def override_slot_values(instance=None):
-    # if it is, then we replace the slot with a getter descriptor that wraps the signal
     cls = type(instance)
     for _, descriptor in walk_slot_descriptors(cls, SignalGetterDescriptor):
         descriptor.__ensure_signal__(instance)
