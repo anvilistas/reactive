@@ -22,6 +22,14 @@ dict_contains = dict.__contains__
 object_new = object.__new__
 
 
+def is_reactive_root(cls):
+    return cls.__dict__.get("__reactive_root__", False)
+
+
+def has_reactive_root(cls):
+    return getattr(cls, "__reactive_root__", False)
+
+
 class SignalGetterDescriptor:
     def __init__(self, original_descriptor):
         self.original_descriptor = original_descriptor
@@ -67,38 +75,40 @@ get_set_descriptor = type(_._)
 
 def walk_slots(cls):
     for c in cls.__mro__:
+        if c is object:
+            return
         slots = getattr(c, "__slots__", None)
         if slots is None:
             continue
         if isinstance(slots, str):
             slots = (slots,)
 
-        yield from (s for s in slots)
+        yield from (s for s in slots if s != "__dict__")
+
+
+def walk_slot_descriptors(cls, descriptor_type):
+    for slot in walk_slots(cls):
+        descriptor = getattr(cls, slot, None)
+        if descriptor is None:
+            continue
+
+        if isinstance(descriptor, descriptor_type):
+            yield slot, descriptor
 
 
 def override_slots(cls):
     # walks all the slots
     # checks whether the slot on the class is a getter descriptor
     # if it is, then we replace the slot with a getter descriptor that wraps the signal
-    for slot in walk_slots(cls):
-        descriptor = getattr(cls, slot, None)
-        if descriptor is None:
-            continue
-
-        if not isinstance(descriptor, get_set_descriptor):
-            continue
-        descriptor = SignalGetterDescriptor(descriptor)
-        setattr(cls, slot, descriptor)
+    for slot, descriptor in walk_slot_descriptors(cls, get_set_descriptor):
+        setattr(cls, slot, SignalGetterDescriptor(descriptor))
 
 
 def override_slot_values(instance=None):
     # if it is, then we replace the slot with a getter descriptor that wraps the signal
-    for slot in walk_slots(instance.__class__):
-        descriptor = getattr(instance.__class__, slot, None)
-        if descriptor is None:
-            continue
-        if isinstance(descriptor, SignalGetterDescriptor):
-            descriptor.__ensure_signal__(instance)
+    cls = type(instance)
+    for _, descriptor in walk_slot_descriptors(cls, SignalGetterDescriptor):
+        descriptor.__ensure_signal__(instance)
 
 
 def reactive_class(base):
@@ -106,8 +116,15 @@ def reactive_class(base):
     if anvil.is_server_side() and not is_testing():
         return base
 
-    if hasattr(base, "__is_reactive__"):
+    if is_reactive_root(base):
         return base
+
+    elif has_reactive_root(base):
+        base.__reactive_root__ = True
+        override_slots(base)
+        return base
+
+    base.__reactive_root__ = True
 
     old_new = base.__new__
     old_getattr = base.__getattribute__
@@ -159,7 +176,6 @@ def reactive_class(base):
     base.__new__ = __new__
     base.__getattribute__ = __getattribute__
     base.__setattr__ = __setattr__
-    base.__is_reactive__ = True
 
     return base
 
@@ -168,7 +184,9 @@ def reactive_instance(self):
     if anvil.is_server_side() and not is_testing():
         return self
 
-    reactive_class(type(self))
+    cls = type(self)
+
+    reactive_class(cls)
 
     d = getattr(self, "__dict__", None)
     if type(d) is dict:
