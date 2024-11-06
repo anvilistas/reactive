@@ -186,7 +186,14 @@ def reactive_instance(self):
 
     cls = type(self)
 
-    reactive_class(cls)
+    mod = getattr(cls, "__module__", "builtins")
+    if mod in ("builtins", "anvil") or mod.startswith("anvil."):
+        return self
+
+    try:
+        reactive_class(cls)
+    except TypeError:
+        return self
 
     d = getattr(self, "__dict__", None)
     if type(d) is dict:
