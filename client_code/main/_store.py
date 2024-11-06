@@ -18,12 +18,21 @@ __version__ = "0.0.12"
 def wrap(val):
     if type(val) is dict:  # noqa: E721
         return ReactiveDict(val)
-    elif type(val) is list:  # noqa: E721
+
+    if type(val) is list:  # noqa: E721
         return ReactiveList(val)
-    elif type(val) is StoreSignal:
+
+    if type(val) is StoreSignal:
         return val._value
-    else:
-        return val
+
+    d = getattr(val, "__dict__", None)
+
+    if type(d) is dict:
+        from ._reactive_class import reactive_instance
+
+        return reactive_instance(val)
+
+    return val
 
 
 def as_signal(val, name=None):

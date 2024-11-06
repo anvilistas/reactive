@@ -8,6 +8,7 @@
 import anvil
 
 from ._computations import StoreSignal
+from ._constants import MISSING
 from ._store import ReactiveDict
 from ._utils import is_testing
 
@@ -19,6 +20,85 @@ dict_pop = dict.pop
 dict_contains = dict.__contains__
 
 object_new = object.__new__
+
+
+class SignalGetterDescriptor:
+    def __init__(self, original_descriptor):
+        self.original_descriptor = original_descriptor
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        rv = self.original_descriptor.__get__(instance, owner)
+        if type(rv) is StoreSignal:
+            return rv.read()
+        return rv
+
+    def __set__(self, instance, value):
+        from ._store import wrap
+
+        try:
+            prev = self.original_descriptor.__get__(instance, type(instance))
+        except AttributeError:
+            prev = MISSING
+
+        if type(prev) is not StoreSignal:
+            prev = StoreSignal(prev)
+            self.original_descriptor.__set__(instance, prev)
+
+        prev.write(wrap(value))
+
+    def __ensure_signal__(self, instance):
+        try:
+            value = self.original_descriptor.__get__(instance, type(instance))
+        except AttributeError:
+            return
+
+        if type(value) is not StoreSignal:
+            self.__set__(instance, value)
+
+
+class _:
+    __slots__ = "_"
+
+
+get_set_descriptor = type(_._)
+
+
+def walk_slots(cls):
+    for c in cls.__mro__:
+        slots = getattr(c, "__slots__", None)
+        if slots is None:
+            continue
+        if isinstance(slots, str):
+            slots = (slots,)
+
+        yield from (s for s in slots)
+
+
+def override_slots(cls):
+    # walks all the slots
+    # checks whether the slot on the class is a getter descriptor
+    # if it is, then we replace the slot with a getter descriptor that wraps the signal
+    for slot in walk_slots(cls):
+        descriptor = getattr(cls, slot, None)
+        if descriptor is None:
+            continue
+
+        if not isinstance(descriptor, get_set_descriptor):
+            continue
+        descriptor = SignalGetterDescriptor(descriptor)
+        setattr(cls, slot, descriptor)
+
+
+def override_slot_values(instance=None):
+    # if it is, then we replace the slot with a getter descriptor that wraps the signal
+    for slot in walk_slots(instance.__class__):
+        descriptor = getattr(instance.__class__, slot, None)
+        if descriptor is None:
+            continue
+        if isinstance(descriptor, SignalGetterDescriptor):
+            descriptor.__ensure_signal__(instance)
 
 
 def reactive_class(base):
@@ -33,15 +113,21 @@ def reactive_class(base):
     old_getattr = base.__getattribute__
     old_setattr = base.__setattr__
 
+    override_slots(base)
+
     @staticmethod
     def __new__(cls, *args, **kws):
         if old_new is object_new:
             self = old_new(cls)
         else:
             self = old_new(cls, *args, **kws)
-        old_dict = self.__dict__
-        self.__dict__ = ReactiveDict(old_dict)
-        old_dict.clear()
+        try:
+            old_dict = self.__dict__
+        except AttributeError:
+            pass
+        else:
+            self.__dict__ = ReactiveDict(old_dict)
+            old_dict.clear()
         return self
 
     def __getattribute__(self, attr):
@@ -55,8 +141,8 @@ def reactive_class(base):
     # instead uses internal .__setitem__ so we let that happen
     # before putting it back into the reactive __dict__
     def __setattr__(self, attr, val):
-        d = self.__dict__
-        if type(d) is dict:
+        d = getattr(self, "__dict__", None)
+        if type(d) is dict or d is None:
             return old_setattr(self, attr, val)
         prev = None
         if dict_contains(d, attr):
@@ -81,7 +167,13 @@ def reactive_class(base):
 def reactive_instance(self):
     if anvil.is_server_side() and not is_testing():
         return self
+
     reactive_class(type(self))
-    if type(self.__dict__) is dict:
-        self.__dict__ = ReactiveDict(self.__dict__)
+
+    d = getattr(self, "__dict__", None)
+    if type(d) is dict:
+        self.__dict__ = ReactiveDict(d)
+
+    override_slot_values(self)
+
     return self
