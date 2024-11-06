@@ -157,16 +157,16 @@ def reactive_class(base):
         d = getattr(self, "__dict__", None)
         if type(d) is dict or d is None:
             return old_setattr(self, attr, val)
-        prev = None
+        signal = None
         if dict_contains(d, attr):
-            prev = dict_getitem(d, attr)
-            assert type(prev) is StoreSignal, "expected a signal"
+            signal = dict_getitem(d, attr)
+            assert type(signal) is StoreSignal, "expected a signal"
         old_setattr(self, attr, val)
         if not dict_contains(d, attr):
             return
         val = dict_pop(d, attr)
-        if prev is not None:
-            dict_setitem(d, attr, prev)
+        if signal is not None:
+            dict_setitem(d, attr, signal)
         d[attr] = val
 
     base.__new__ = __new__
