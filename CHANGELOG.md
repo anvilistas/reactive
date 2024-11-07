@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.0.12 (01/01/1970)
+## v0.1.0 (01/01/1970)
+## What's Changed
+### 🚀 Features
+
+- Support reactivity for classes and instances with __slots__ [#26](https://github.com/anvilistas/reactive/pull/26)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@meatballs and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.0.12...v0.1.0
+
+---
+
+## v0.0.12 (23/10/2024)
 ## What's Changed
 ### 🐛 Bug Fixes
 

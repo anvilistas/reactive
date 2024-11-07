@@ -13,7 +13,7 @@ from ._signal import signal
 from ._store import ReactiveDict as reactive_dict
 from ._store import ReactiveList as reactive_list
 
-__version__ = "0.0.12"
+__version__ = "0.1.0"
 
 
 @reactive_class
