@@ -240,3 +240,52 @@ def test_writeback():
     assert c.foo == 43
     c.raise_event("change")
     assert c.foo == 1
+
+
+def test_reactive_class_with_slots():
+    class Namespace:
+        pass
+
+    @reactive_class
+    class Custom:
+        __slots__ = ("foo", "bar")
+
+        def __init__(self):
+            self.foo = 1
+            self.bar = 2
+
+    class Custom2(Custom):
+        def __init__(self):
+            self.ns = Namespace()
+            self.ns.foo = 1
+
+    c = Custom()
+    c2 = Custom2()
+
+    x = 0
+
+    @create_effect
+    def effect_fn():
+        nonlocal x
+        c.foo
+        c2.ns.foo
+        x += 1
+
+    assert x == 1
+    c.foo += 1
+    assert x == 2
+    c.bar += 1
+    assert x == 2
+
+    c.foo = lambda: None
+    c.foo = set()
+    c.foo = type
+    c.foo = Custom
+
+    assert x == 6
+
+    c2.ns.foo += 1
+
+    assert x == 7
+    c2.ns.bar = 42
+    assert x == 7
