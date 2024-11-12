@@ -10,6 +10,7 @@ from functools import partial, wraps
 import anvil
 from anvil import Component
 
+from .._internal.core import untrack
 from .._internal.signal import create_effect, create_memo, create_root
 from ._constants import MISSING
 from ._utils import CacheDict, noop
@@ -274,6 +275,9 @@ def writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=(
     REACTIVE_COMPONENT.get(component).writebacks.append(
         lambda component: create_effect(render)
     )
+    with untrack():
+        # we do this now to avoid show events causing renders that animate
+        return render()
 
 
 def bind(component, prop, reactive_or_getter, attr=MISSING):
