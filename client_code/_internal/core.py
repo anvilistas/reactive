@@ -327,7 +327,12 @@ class compute:
 
         if callable(compute):
             with self:
-                return compute(observer._value if observer else None)
+                rv = compute(observer._value if observer else None)
+            if hasattr(rv, "then"):
+                # observers stop listening if the computation returns a promise
+                return rv.then()
+            else:
+                return rv
         else:
             return self
 

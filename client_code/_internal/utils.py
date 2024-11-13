@@ -62,7 +62,7 @@ class Result:
 
 
 def wrap_compute(compute):
-    return compute
+    # return compute
     # TODO - this breaks when we have @computations that suspend
 
     def wrapper(*args, **kws):
