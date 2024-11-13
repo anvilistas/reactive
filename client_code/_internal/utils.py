@@ -62,6 +62,9 @@ class Result:
 
 
 def wrap_compute(compute):
+    return compute
+    # TODO - this breaks when we have @computations that suspend
+
     def wrapper(*args, **kws):
         return wrap_suspension(lambda: Result(compute(*args, **kws)).value)
 
