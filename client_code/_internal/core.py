@@ -328,9 +328,15 @@ class compute:
         if callable(compute):
             with self:
                 rv = compute(observer._value if observer else None)
-            if hasattr(rv, "then"):
+
+            then = getattr(rv, "then", None)
+            if callable(then):
+                # The computation suspended, and we have a promise like object
                 # observers stop listening if the computation returns a promise
-                return rv.then()
+                # this avoids the observers leaking into other computations
+                # e.g. a computation suspends and while this happens
+                # a button is clicked that writes to a signal causing effects to run
+                return then()
             else:
                 return rv
         else:
