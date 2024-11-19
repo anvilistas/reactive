@@ -1,6 +1,24 @@
 # Changelog
 
-## v0.1.0 (01/01/1970)
+## v0.1.1 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fixes computations that suspend [#28](https://github.com/anvilistas/reactive/pull/28)
+
+### Other changes
+
+- Writeback before render [#29](https://github.com/anvilistas/reactive/pull/29)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@meatballs, @pre-commit-ci, @pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.1.0...v0.1.1
+
+---
+
+## v0.1.0 (07/11/2024)
 ## What's Changed
 ### 🚀 Features
 
