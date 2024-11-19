@@ -11,7 +11,7 @@ from .constants import STATE_CLEAN, STATE_DISPOSED
 from .core import Computation
 from .owner import handleError
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 if is_server_side():
 
