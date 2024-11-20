@@ -183,7 +183,7 @@ def reactive_instance(self):
     cls = type(self)
 
     mod = getattr(cls, "__module__", "builtins")
-    if mod in ("builtins", "anvil") or mod.startswith("anvil."):
+    if mod in ("builtins", "anvil"):
         return self
 
     try:
