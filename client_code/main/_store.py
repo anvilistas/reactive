@@ -216,6 +216,10 @@ class ReactiveList(list):
             self._update_len()
             list_set(self, i, [as_signal(v) for v in val])
 
+    def __delitem__(self, i):
+        list.__delitem__(self, i)
+        self._update_len()
+
     def remove(self, val):
         list.remove(self, val)
         self._update_len()
