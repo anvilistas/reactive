@@ -1,6 +1,21 @@
 # Changelog
 
-## v0.1.1 (01/01/1970)
+## v0.1.2 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: add delitem support for reactive list [#35](https://github.com/anvilistas/reactive/pull/35)
+- Fix - we can make anvil classes reactive [#31](https://github.com/anvilistas/reactive/pull/31)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@meatballs, @pre-commit-ci, @pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.1.1...v0.1.2
+
+---
+
+## v0.1.1 (19/11/2024)
 ## What's Changed
 ### 🐛 Bug Fixes
 

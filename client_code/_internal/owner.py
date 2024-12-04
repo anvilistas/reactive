@@ -7,7 +7,7 @@
 
 from .constants import STATE_CLEAN, STATE_DISPOSED
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 HANDLER = object()
 

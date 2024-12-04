@@ -24,7 +24,7 @@ else:
         set = dict.__setitem__
 
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 REACTIVE_CACHE = WeakMap()
 REACTIVE_COMPONENT = WeakMap()
