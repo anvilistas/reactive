@@ -139,7 +139,7 @@ def reactive_class(base):
         except AttributeError:
             pass
         else:
-            object.setattr(self, "__dict__", ReactiveDict(old_dict))
+            object.__setattr__(self, "__dict__", ReactiveDict(old_dict))
             old_dict.clear()
         return self
 
@@ -193,7 +193,7 @@ def reactive_instance(self):
 
     d = getattr(self, "__dict__", None)
     if type(d) is dict:
-        object.setattr(self, "__dict__", ReactiveDict(d))
+        object.__setattr__(self, "__dict__", ReactiveDict(d))
 
     override_slot_values(self)
 
