@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023-2024 Anvilistas project team members listed at
+# Copyright (c) 2023-2025 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -139,7 +139,7 @@ def reactive_class(base):
         except AttributeError:
             pass
         else:
-            self.__dict__ = ReactiveDict(old_dict)
+            object.setattr(self, "__dict__", ReactiveDict(old_dict))
             old_dict.clear()
         return self
 
@@ -193,7 +193,7 @@ def reactive_instance(self):
 
     d = getattr(self, "__dict__", None)
     if type(d) is dict:
-        self.__dict__ = ReactiveDict(d)
+        object.setattr(self, "__dict__", ReactiveDict(d))
 
     override_slot_values(self)
 
