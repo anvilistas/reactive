@@ -12,7 +12,7 @@ from .._internal.core import Computation, getObserver, isEqual, untrack
 from ._computations import StoreSignal, UniqueSignal
 from ._constants import MISSING
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 
 def wrap(val):

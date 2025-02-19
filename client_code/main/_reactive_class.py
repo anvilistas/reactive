@@ -12,7 +12,7 @@ from ._constants import MISSING
 from ._store import ReactiveDict
 from ._utils import is_testing
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 dict_getitem = dict.__getitem__
 dict_setitem = dict.__setitem__

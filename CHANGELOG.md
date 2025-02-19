@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.1.2 (01/01/1970)
+## v0.1.3 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: __dict__ assignment [#37](https://github.com/anvilistas/reactive/pull/37)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.1.2...v0.1.3
+
+---
+
+## v0.1.2 (04/12/2024)
 ## What's Changed
 ### 🐛 Bug Fixes
 

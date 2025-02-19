@@ -17,7 +17,7 @@ from .flags import DEFAULT_FLAGS, ERROR_BIT, LOADING_BIT
 from .owner import Owner, getOwner, setCurrentOwner
 from .utils import wrap_compute
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 currentObserver = None
 currentMask = DEFAULT_FLAGS
