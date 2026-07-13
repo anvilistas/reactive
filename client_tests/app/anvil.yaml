@@ -1,0 +1,34 @@
+allow_embedding: false
+db_schema:
+  counters:
+    client: none
+    columns:
+    - {name: value, type: number}
+    - {name: owner, target: owners, type: link_single}
+    server: full
+    title: Counters
+  owners:
+    client: none
+    columns:
+    - {name: name, type: string}
+    server: full
+    title: Owners
+dependencies:
+- dep_id: anvil_reactive_under_test
+  resolution_hints:
+    name: Anvil Reactive
+    package_name: anvil_reactive
+  version: {dev: false}
+name: Anvil Reactive Client Tests
+package_name: anvil_reactive_client_tests
+runtime_options:
+  client_version: '3'
+  server_spec: {}
+  server_version: python3-full
+  version: 3
+services:
+- client_config: {enable_v2: true}
+  server_config: {auto_create_missing_columns: false}
+  source: /runtime/services/tables.yml
+startup: {module: TestHost, type: form}
+startup_form: null
