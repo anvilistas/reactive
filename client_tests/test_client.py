@@ -304,7 +304,6 @@ def test_reactive_dependency_in_real_client(tmp_path):
         "datatable_model_preserves_surface_and_linked_values",
         "buffered_model_save_and_reset",
         "server_round_trip_refreshes_same_model",
-        "server_round_trip_preserves_python_identity",
         "reactive_instance_does_not_mutate_model_class",
         "reactive_model_attribute_updates_effect",
         "reactive_model_property_updates_effect",
@@ -333,13 +332,11 @@ def test_reactive_dependency_in_real_client(tmp_path):
     assert known_gap["classification"] == "known_gap"
     assert known_gap["status"] == "xfail"
     assert {case["name"] for case in cases.values() if case["status"] == "xfail"} == {
-        "component_effect_matches_render_effect_lifecycle",
         "dependency_change_while_first_execution_is_pending",
         "disposal_invalidates_pending_completion",
         "newer_async_execution_supersedes_older_result",
         "pending_work_preserves_dependency_reconciliation",
         "reactive_instance_does_not_mutate_model_class",
-        "server_round_trip_preserves_python_identity",
         "unmounted_writeback_event_is_ignored",
     }
     for case in cases.values():

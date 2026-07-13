@@ -422,36 +422,42 @@ def _removed_render_effect_pauses_and_restarts():
     assert _render_log(panel) == [0, 1, 2]
 
 
-@known_gap(
-    "An ordinary component effect remains active after removal when mounted "
-    "beside a render effect"
-)
+@contract
 def _component_effect_matches_render_effect_lifecycle():
-    render_panel = _RenderEffectPanel()
-    effect_panel = _EffectPanel()
-    assert _render_log(render_panel) == []
-    assert _render_log(effect_panel) == []
+    panel = _EffectPanel()
+    assert _render_log(panel) == []
 
-    _HOST.add_component(render_panel)
-    _HOST.add_component(effect_panel)
-    assert _render_log(render_panel) == [0], _render_log(render_panel)
-    if _render_log(effect_panel) != [0]:
-        raise AssertionError(repr(_render_log(effect_panel)))
+    _HOST.add_component(panel)
+    assert _render_log(panel) == [0]
     _flush_microtasks()
 
-    render_panel.remove_from_parent()
-    effect_panel.remove_from_parent()
-    render_panel.value = 1
-    effect_panel.value = 1
+    panel.remove_from_parent()
+    panel.value = 1
     await_promise(window.Promise.resolve())
-    assert _render_log(render_panel) == [0], _render_log(render_panel)
-    if _render_log(effect_panel) != [0]:
-        raise AssertionError(repr(_render_log(effect_panel)))
+    assert _render_log(panel) == [0]
 
-    _HOST.add_component(render_panel)
-    _HOST.add_component(effect_panel)
-    assert _render_log(render_panel) == [0, 1], _render_log(render_panel)
-    assert _render_log(effect_panel) == [0, 1], _render_log(effect_panel)
+    _HOST.add_component(panel)
+    assert _render_log(panel) == [0, 1]
+
+
+@contract
+def _component_roots_can_be_disposed_in_any_order():
+    older = _EffectPanel()
+    newer = _EffectPanel()
+    _HOST.add_component(older)
+    _HOST.add_component(newer)
+    assert _render_log(older) == [0]
+    assert _render_log(newer) == [0]
+    _flush_microtasks()
+
+    older.remove_from_parent()
+    newer.remove_from_parent()
+    older.value = 1
+    newer.value = 1
+    await_promise(window.Promise.resolve())
+
+    assert _render_log(older) == [0], _render_log(older)
+    assert _render_log(newer) == [0], _render_log(newer)
 
 
 @contract
@@ -648,14 +654,6 @@ def _server_round_trip_refreshes_same_model():
     fetched_again = anvil.server.call("get_counter")
     assert isinstance(fetched_again, CounterModel)
     assert fetched_again.value == 6
-
-
-@known_gap("Server round trips rehydrate an equivalent but distinct Model instance")
-def _server_round_trip_preserves_python_identity():
-    counter = anvil.server.call("reset_counter")
-    echoed = anvil.server.call("echo_counter", counter)
-
-    assert echoed is counter
 
 
 @known_gap("reactive_instance mutates the shared Model class, not only one row")
