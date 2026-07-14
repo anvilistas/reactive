@@ -1,0 +1,22 @@
+site_name: Anvil Reactive
+site_description: Automatic client-side updates for Anvil apps
+site_url: https://anvilistas.github.io/reactive/
+repo_url: https://github.com/anvilistas/reactive
+repo_name: anvilistas/reactive
+edit_uri: edit/main/docs/
+
+theme:
+  name: readthedocs
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - def_list
+
+plugins:
+  - search
+  - mkdocs-nav-weight
+
+exclude_docs: |
+  major-version-plan.md
