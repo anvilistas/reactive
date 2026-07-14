@@ -24,7 +24,7 @@ from anvil_reactive.main import (
 )
 
 from .case_registry import CASES, contract, known_gap
-from .models import CounterModel, OwnerModel
+from .models import CounterModel, OwnerModel, ReactiveCounterModel
 from .reactive_reset import drain_before_reset, hard_reset, run_in_test_root
 from .skulpt_traceback import format_exception
 
@@ -637,6 +637,37 @@ def _buffered_model_save_and_reset():
     counter.save()
     assert counter.buffered_changes == {}
     assert anvil.server.call("get_counter_value") == 8
+
+
+@contract(fresh_page=True)
+def _reactive_class_model_supports_buffered_editing():
+    counter = anvil.server.call("reset_reactive_counter")
+    assert isinstance(counter, ReactiveCounterModel)
+    editor = anvil.TextBox(type="number")
+    save_button = anvil.Button(enabled=False)
+
+    writeback(editor, "text", counter, "value", "change")
+    bind(save_button, "enabled", lambda: bool(counter.buffered_changes))
+    _HOST.add_component(editor)
+    _HOST.add_component(save_button)
+
+    assert float(editor.text) == 2
+    assert save_button.enabled is False
+
+    editor.text = 7
+    editor.raise_event("change")
+    _flush_microtasks()
+
+    assert counter.value == 7
+    assert counter.buffered_changes == {"value": 7}
+    assert save_button.enabled is True
+
+    counter.reset()
+    _flush_microtasks()
+
+    assert float(editor.text) == 2
+    assert counter.buffered_changes == {}
+    assert save_button.enabled is False
 
 
 @contract

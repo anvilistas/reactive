@@ -7,6 +7,12 @@ db_schema:
     - {name: owner, target: owners, type: link_single}
     server: full
     title: Counters
+  reactive_counters:
+    client: none
+    columns:
+    - {name: value, type: number}
+    server: full
+    title: Reactive Counters
   owners:
     client: none
     columns:

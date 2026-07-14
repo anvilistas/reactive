@@ -303,6 +303,7 @@ def test_reactive_dependency_in_real_client(tmp_path):
     expected_datatable_cases = {
         "datatable_model_preserves_surface_and_linked_values",
         "buffered_model_save_and_reset",
+        "reactive_class_model_supports_buffered_editing",
         "server_round_trip_refreshes_same_model",
         "reactive_instance_does_not_mutate_model_class",
         "reactive_model_attribute_updates_effect",
@@ -323,6 +324,7 @@ def test_reactive_dependency_in_real_client(tmp_path):
         "multiple_sequential_suspensions_resume_in_order",
         "only_reads_before_first_suspension_are_tracked",
         "post_suspension_exception_reaches_the_caller",
+        "reactive_class_model_supports_buffered_editing",
     } <= isolated_cases
     assert cases["reset_discards_queued_effects"]["status"] == "pass"
     traceback_case = cases["skulpt_traceback_is_reported"]

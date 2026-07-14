@@ -6,6 +6,7 @@
 # This software is published at https://github.com/anvilistas/reactive
 
 from anvil.tables import app_tables
+from anvil_reactive.main import reactive_class
 
 
 class OwnerModel(app_tables.owners.Row, attrs=True, client_writable=True):
@@ -25,3 +26,13 @@ class CounterModel(
     @property
     def owner_name(self):
         return self.owner.name
+
+
+@reactive_class
+class ReactiveCounterModel(
+    app_tables.reactive_counters.Row,
+    attrs=True,
+    buffered=True,
+    client_writable=True,
+):
+    pass

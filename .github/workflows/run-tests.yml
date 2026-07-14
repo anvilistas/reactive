@@ -18,19 +18,19 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       with:
         python-version: '3.12'
-        cache: pip
-        cache-dependency-path: requirements-dev.txt
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --requirement requirements-dev.txt
     - name: Run CPython test suite
       env:
         PYTHONPATH: .
-      run: python -m pytest -q tests
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        pytest -q tests
+    - name: Build documentation
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        mkdocs build --strict
 
   client:
     name: App Server client tests
@@ -42,22 +42,19 @@ jobs:
       with:
         distribution: temurin
         java-version: '21'
-    - uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       with:
         python-version: '3.12'
-        cache: pip
-        cache-dependency-path: requirements-dev.txt
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --requirement requirements-dev.txt
     - name: Install Chromium
-      run: python -m playwright install --with-deps chromium
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        playwright install --with-deps chromium
     - name: Run App Server client suite
       env:
         PYTHONPATH: .
       run: >-
-        python -m pytest -q client_tests/test_client.py
+        uv run --isolated --with-requirements requirements-dev.txt
+        pytest -q client_tests/test_client.py
         --basetemp=client-test-artifacts
     - name: Upload client failure diagnostics
       if: failure()

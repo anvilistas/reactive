@@ -22,6 +22,12 @@ def reset_counter():
 
 
 @anvil.server.callable
+def reset_reactive_counter():
+    app_tables.reactive_counters.delete_all_rows()
+    return app_tables.reactive_counters.add_row(value=2)
+
+
+@anvil.server.callable
 def get_counter():
     return app_tables.counters.get()
 

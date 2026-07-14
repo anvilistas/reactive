@@ -1,0 +1,61 @@
+# Anvil Reactive
+
+Anvil Reactive is client-side state management for Anvil apps. It tracks which reactive values code reads, then updates computed values, effects, and component properties when those values change.
+
+Use it when a Form's UI is derived from mutable client state. If an app already has this dependency, prefer its `bind()` and `writeback()` functions for new component-state relationships: they share the same reactive state and Form lifecycle. Leave unrelated native Anvil Data Bindings in place unless migration is requested.
+
+Import public names from `anvil_reactive.main`.
+
+## Preferred pattern
+
+Keep state separate from the Form, then bind components after the Form has initialized:
+
+```python
+from anvil_reactive.main import Reactive, bind, computed, writeback
+
+
+class SearchState(Reactive):
+    def __init__(self):
+        self.query = ""
+        self.results = []
+
+    @computed
+    @property
+    def result_count(self):
+        return len(self.results)
+
+
+class SearchForm(SearchFormTemplate):
+    def __init__(self, **properties):
+        super().__init__(**properties)
+        self.state = SearchState()
+
+        writeback(self.query_box, "text", self.state, "query", "change")
+        bind(self.count_label, "text", lambda: str(self.state.result_count))
+```
+
+- Use `signal(default)` for individual reactive class attributes.
+- Use `Reactive` or `@reactive_class` when most instance attributes are state.
+- Use `reactive_dict()` and `reactive_list()` when in-place collection changes must be observed.
+- Use `@computed` for derived values and `@effect` for side effects that should rerun automatically.
+- Decorate a Data Table Model Class you control with `@reactive_class`; use `reactive_instance(obj)` when you cannot change the class.
+
+## How tracking affects code
+
+An effect, computed value, or binding depends on the reactive values it reads while it runs. Conditional reads therefore change its dependencies on the next run. Changes are batched, so do not assume an effect has rerun immediately after an assignment.
+
+An `@effect` method on a Form or component follows page lifecycle: it starts when the component is added to the page, stops when removed, and starts again if re-added. Setting `visible = False` does not remove a component from the page.
+
+## Gotchas
+
+- Reactive behavior is client-side. The class adapters are effectively no-ops in server modules; keep UI state, bindings, and effects in client code.
+- Call `bind()` and `writeback()` only after Anvil has created the Form's components.
+- Install each binding once. Calling `bind()` or `writeback()` again adds another binding instead of replacing the previous one; do not call them from a repeatedly invoked property setter.
+- `@computed` must wrap `@property`, in that order.
+- `reactive_instance(obj)` currently changes the object's class behavior, so other instances of the same Model class may also become reactive.
+- Plain dictionaries and lists assigned inside reactive state are wrapped automatically. Across a server call they serialize as ordinary collections; do not depend on client object identity surviving the round trip.
+- An effect may wait for server calls or other operations that pause client Python, including more than once, but only reactive reads before the first wait are tracked. Read dependencies before calling helpers that might wait.
+- Pending effect work is not cancelled when dependencies change or when a component is removed. Older work can finish after newer work and overwrite its result. For searches and similar user-driven requests, use an event handler and an explicit request counter or stale-result check.
+- Prefer `effect` for new component code. `render_effect` exists for compatibility.
+
+Do not introduce a second state system or rewrite working native bindings merely because Anvil Reactive is present. Use the library where automatic client-state tracking makes the code simpler.
