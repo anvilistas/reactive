@@ -29,7 +29,7 @@ jobs:
         pytest -q tests
     - name: Build documentation
       run: >-
-        uv run --isolated --with-requirements requirements-dev.txt
+        uv run --isolated --with-requirements requirements-docs.txt
         mkdocs build --strict
 
   client:

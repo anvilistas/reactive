@@ -37,7 +37,7 @@ PYTHONPATH=. uv run --isolated --with-requirements requirements-dev.txt \
   pytest -q tests
 PYTHONPATH=. uv run --isolated --with-requirements requirements-dev.txt \
   pytest -q client_tests/test_client.py
-uv run --isolated --with-requirements requirements-dev.txt \
+uv run --isolated --with-requirements requirements-docs.txt \
   mkdocs build --strict
 ```
 
@@ -45,6 +45,30 @@ The client suite requires Java 21 and starts `anvil-app-server==1.17.0` in a
 temporary workspace. On Apple Silicon it also uses Docker for PostgreSQL.
 
 ## Publish documentation
+
+### Set up Read the Docs
+
+The repository is configured for Read the Docs in `.readthedocs.yaml`. Builds
+use Python 3.12, `uv`, and the pinned packages in `requirements-docs.txt`.
+
+To connect the project:
+
+1. Sign in to [Read the Docs](https://app.readthedocs.org/) with GitHub and import
+   `anvilistas/reactive`.
+2. Name the project `anvil-reactive`, if that name is available, and select
+   `main` as the default branch. Keep `latest` as the default documentation
+   version initially.
+3. Once this configuration is merged, build `latest`. Verify the home page,
+   navigation, and `/en/latest/llms.txt` on the project's assigned domain.
+4. After the first successful build, update the documentation links in this
+   README and the fallback `site_url` in `mkdocs.yml`, then retire the GitHub
+   Pages deployment workflow. Keep Pages available until the new site works.
+
+Read the Docs supplies the canonical URL for each build. Release tags created
+after this configuration is merged can also be enabled as documentation
+versions. Older tags do not contain the build configuration.
+
+### Current GitHub Pages site
 
 GitHub Pages publishes the MkDocs site at
 <https://anvilistas.github.io/reactive/>. The repository uses **Settings > Pages >
