@@ -8,6 +8,10 @@ weight: -9.8
 In this guide, you'll store a count in a Form and bind it to a Label. Every time
 the count changes, Anvil Reactive will update the Label for you.
 
+First, [add the dependency](installation.md). The examples use Anvil's
+runtime-v3 Form syntax. In older Forms, keep your existing
+`self.init_components(**properties)` call and add the binding after it.
+
 ## Build the Form
 
 Create a Form named `CounterForm`. Add:
@@ -43,7 +47,8 @@ class CounterForm(CounterFormTemplate):
         self.count += 1
 ```
 
-Run the app and click **Add one**. The event handler changes `self.count`, and
+Set `CounterForm` as the startup Form, then run the app and click **Add one**.
+The event handler changes `self.count`, and
 the Label updates automatically.
 
 ## What happened?

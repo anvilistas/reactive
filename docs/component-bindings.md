@@ -20,6 +20,9 @@ migrated just because Reactive is installed.
 Call `bind()` after the Form has created its components:
 
 ```python
+from anvil_reactive.main import bind
+
+
 def __init__(self, **properties):
     super().__init__(**properties)
 
@@ -79,9 +82,9 @@ writeback(
 )
 ```
 
-The event is part of the interaction design. For example, `change` writes after
-the user commits an edit; an event that fires for each keystroke writes more
-often.
+For an Anvil TextBox, `change` writes as the user edits the text. Use
+`lost_focus` or `pressed_enter` if you want to write when the user leaves the
+field or presses Enter.
 
 ## Edit a buffered Model Class
 
@@ -89,8 +92,15 @@ A reactive, buffered Data Table Model Class can be used directly as a Form's
 editing state. This example writes the TextBox value to the model on `change`
 and enables Save while the model has buffered changes:
 
+Create a `BookForm` with a TextBox named `title_box` and Buttons named
+`save_button` and `cancel_button`. Pass it a row from the
+[reactive Book model](reactive-classes.md#make-a-model-class-reactive).
+
 ```python
+from anvil import handle
 from anvil_reactive.main import bind, writeback
+
+from ._anvil_designer import BookFormTemplate
 
 
 class BookForm(BookFormTemplate):
@@ -105,9 +115,11 @@ class BookForm(BookFormTemplate):
             lambda: bool(self.book.buffered_changes),
         )
 
+    @handle("save_button", "click")
     def save_button_click(self, **event_args):
         self.book.save()
 
+    @handle("cancel_button", "click")
     def cancel_button_click(self, **event_args):
         self.book.reset()
 ```

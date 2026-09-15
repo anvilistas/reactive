@@ -12,14 +12,13 @@ public API from `anvil_reactive.main` in client code.
 
 In the Anvil Editor:
 
-1. Open **App Browser > Dependencies**.
-2. Click **Add Dependency**.
+1. Open **Settings > Dependencies**.
+2. Choose **Third Party**.
 3. Enter the third-party dependency ID `N7KFE4YBWMGWJ5OX`.
 4. Choose a tagged version so your app does not change unexpectedly.
 
-You can also clone the
-[GitHub repository](https://github.com/anvilistas/reactive) into your Anvil
-account and add that app as a dependency.
+See Anvil's [dependency guide](https://anvil.works/docs/deployment/dependencies)
+for help choosing a version.
 
 ## Import the API
 

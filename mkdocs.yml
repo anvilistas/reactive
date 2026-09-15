@@ -20,3 +20,4 @@ plugins:
 
 exclude_docs: |
   major-version-plan.md
+  research/

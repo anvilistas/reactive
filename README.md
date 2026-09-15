@@ -43,3 +43,21 @@ uv run --isolated --with-requirements requirements-dev.txt \
 
 The client suite requires Java 21 and starts `anvil-app-server==1.17.0` in a
 temporary workspace. On Apple Silicon it also uses Docker for PostgreSQL.
+
+## Publish documentation
+
+GitHub Pages publishes the MkDocs site at
+<https://anvilistas.github.io/reactive/>. The repository uses **Settings > Pages >
+Build and deployment > Source: GitHub Actions**.
+
+Merge documentation changes into `main` to deploy automatically. Once the
+deployment workflow is on `main`, you can also start it with the GitHub CLI:
+
+```shell
+gh workflow run deploy-docs.yml --ref main
+gh run list --workflow deploy-docs.yml --limit 1
+```
+
+Use `gh run watch <run-id> --exit-status` to follow that deployment. The built
+site includes `llms.txt` at its root; contributor plans and research notes are
+excluded from publication.

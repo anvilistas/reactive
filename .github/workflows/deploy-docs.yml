@@ -9,6 +9,7 @@ on:
     - docs/**
     - mkdocs.yml
     - requirements-dev.txt
+    - requirements.txt
   workflow_dispatch:
 
 permissions:
@@ -42,6 +43,7 @@ jobs:
 
   deploy:
     name: Deploy documentation
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

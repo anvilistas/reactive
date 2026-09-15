@@ -52,8 +52,9 @@ value. A value that is no longer used stops triggering that binding.
 ## Several changes are grouped together
 
 If an event handler changes several reactive values, Reactive groups the
-resulting work. Your bindings and effects update after the current handler has
-finished instead of updating after every assignment.
+resulting work. Your bindings and effects update when client Python next yields
+control to the browser, usually after the handler returns. A server call can
+also yield control before the handler finishes.
 
 Setting a string or number to the value it already contains does not cause an
 update. If you need changes inside a dictionary or list to trigger updates, use

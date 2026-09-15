@@ -14,7 +14,7 @@ Import public names from `anvil_reactive.main`.
 
 `signal(default=None, *, default_factory=...)`
 : Declares an explicitly reactive class attribute. `default_factory` is called
-  once for each instance when its value is first read.
+  once for each instance when the signal is first read or assigned.
 
 `reactive_class(cls)`
 : Class decorator that makes instance attributes reactive. Supports normal
@@ -23,7 +23,7 @@ Import public names from `anvil_reactive.main`.
 `Reactive`
 : Empty convenience base class already decorated with `reactive_class`.
 
-`reactive_instance(obj)`
+`reactive_instance(self)`
 : Makes a supported existing client object reactive and returns the same object.
   Calling it can also make other objects from the same class reactive, so the
   change is not isolated to that instance. Unsupported built-in and Anvil base
@@ -45,10 +45,13 @@ Import public names from `anvil_reactive.main`.
 : Compatibility effect decorator. It currently has the same behavior and
   component lifecycle as `effect`; prefer `effect` for new code.
 
-`create_effect(fn, initialValue=..., name=None)`
+`create_effect(effect, initialValue=..., name=None)`
 : Low-level callable form used as `@create_effect` or called with a function.
   Prefer `effect` when an instance should own the lifetime. If `initialValue` is
-  supplied, it is passed to executions as the previous value.
+  supplied, it is passed to the first execution; each return value becomes the
+  next execution's argument. Returns an effect object with `dispose()` to stop
+  automatic execution. Using it as a decorator replaces the function name with
+  that object.
 
 ## Collections
 
@@ -64,15 +67,17 @@ Import public names from `anvil_reactive.main`.
 
 ## Components
 
-`bind(component, property_name, getter)`
-`bind(component, property_name, object_or_dict, attribute_or_key)`
+`bind(component, prop, reactive_or_getter, attr=...)`
 : Immediately sets a component property and keeps it synchronized from a getter,
-  object attribute, or dictionary key while the component is mounted.
+  object attribute, or dictionary key while the component is mounted. Pass a
+  getter as `reactive_or_getter`, or pass an object/dictionary with `attr` naming
+  its attribute/key.
 
-`writeback(component, property_name, object_or_dict, attribute_or_key, events=())`
-`writeback(component, property_name, getter, setter, events=())`
+`writeback(component, prop, reactive_or_getter, attr_or_effect=None, events=())`
 : Adds one-way rendering plus event-driven updates from the component property
-  to the source. `events` can be one event name or an iterable of names.
+  to the source. Pass an object/dictionary and an attribute/key, or a getter and
+  a setter. `events` can be one event name or an iterable of names. With no
+  events, only the state-to-component update is installed.
 
 ## Metadata
 

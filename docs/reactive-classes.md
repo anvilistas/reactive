@@ -58,7 +58,8 @@ class CartState(Reactive):
 ## Make a Model Class reactive
 
 If you control a Data Table Model Class, apply `reactive_class` to the class
-itself:
+itself. Create a `books` table with a text column named `title`, then define the
+class in a Module named `models`:
 
 ```python
 from anvil.tables import app_tables
@@ -75,6 +76,11 @@ class Book(
     pass
 ```
 
+Import `models` from your startup Form and server code before fetching rows.
+Anvil uses that import to register the class for the table. Configure the
+table's [client access](https://anvil.works/docs/data-tables/model-classes/client-writable)
+to allow the edits your app needs; the decorator does not grant access.
+
 Reactive can then watch the Model's attributes, custom properties, linked rows,
 and `buffered_changes`. This is useful for an editing Form that should enable its
 Save button when the row changes. See [Edit a buffered Model
@@ -84,19 +90,17 @@ pattern.
 ## Make an existing object reactive
 
 Use `reactive_instance()` when another API created the object and you cannot
-decorate its class. For example, you can make a Data Table Model instance
-reactive:
+decorate its class:
 
 ```python
-from anvil.tables import app_tables
 from anvil_reactive.main import reactive_instance
 
-counter = reactive_instance(app_tables.counter.get())
+# existing_object was created by another library.
+state = reactive_instance(existing_object)
 ```
 
-Reactive can then watch values read through attributes, item access, custom
-properties, and linked rows. Updates to that object after a server call can also
-update code that uses it.
+Reactive can then watch supported instance attributes and values read by its
+properties. For Data Tables, prefer the decorated Model Class above.
 
 !!! warning
 
