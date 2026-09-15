@@ -1,0 +1,9 @@
+unique_ids:
+  assets:
+    standard-page.html: ARCLIENTTESTSTANDARDPAGE0000000000
+    theme.css: ARCLIENTTESTTHEMECSS00000000000000
+  forms: {}
+  modules:
+    runner: ARCLIENTTESTSRUNNER000000000000000
+  scripts: {}
+  server_modules: {}

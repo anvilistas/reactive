@@ -2,23 +2,65 @@ name: Run Tests
 
 on:
   push:
-    branches:
-      - main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
-    name: Run tests
+  cpython:
+    name: CPython tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+    - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       with:
-        python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest anvil-uplink
-    - name: Run test suite
-      run: |
-        python -m pytest -sv
+        python-version: '3.12'
+    - name: Run CPython test suite
+      env:
+        PYTHONPATH: .
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        pytest -q tests
+    - name: Build documentation
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        mkdocs build --strict
+
+  client:
+    name: App Server client tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '21'
+    - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      with:
+        python-version: '3.12'
+    - name: Install Chromium
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        playwright install --with-deps chromium
+    - name: Run App Server client suite
+      env:
+        PYTHONPATH: .
+      run: >-
+        uv run --isolated --with-requirements requirements-dev.txt
+        pytest -q client_tests/test_client.py
+        --basetemp=client-test-artifacts
+    - name: Upload client failure diagnostics
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: reactive-client-test-diagnostics
+        path: client-test-artifacts
+        if-no-files-found: ignore
+        retention-days: 7

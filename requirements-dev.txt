@@ -1,0 +1,9 @@
+-r requirements.txt
+
+anvil-app-server==1.17.0
+attrs==25.3.0
+mkdocs==1.6.1
+mkdocs-nav-weight==0.2.0
+playwright==1.55.0
+pytest==8.4.2
+pytest-subtests==0.7.0

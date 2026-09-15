@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023-2025 Anvilistas project team members listed at
+# Copyright (c) 2023-2026 Anvilistas project team members listed at
 # https://github.com/anvilistas/reactive/graphs/contributors
 #
 # This software is published at https://github.com/anvilistas/reactive
@@ -8,7 +8,7 @@
 from .core import Computation, compute
 from .effect import Effect, RenderEffect
 from .helpers import is_callable
-from .owner import HANDLER, Owner, handleError
+from .owner import HANDLER, Owner, handleError, setCurrentOwner
 
 __version__ = "0.1.3"
 
@@ -57,7 +57,9 @@ def create_render_effect(compute, effect):
 
 
 def create_root(init):
+    prev_owner = setCurrentOwner(None)
     owner = Owner()
+    setCurrentOwner(prev_owner)
 
     # TODO - determine number of args to include dispose function
     def wrap_init(value):
