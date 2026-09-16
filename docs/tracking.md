@@ -39,9 +39,7 @@ bind(
     self.value_label,
     "text",
     lambda: (
-        self.state["primary"]
-        if self.state["use_primary"]
-        else self.state["fallback"]
+        self.state["primary"] if self.state["use_primary"] else self.state["fallback"]
     ),
 )
 ```

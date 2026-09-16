@@ -17,10 +17,12 @@ Create a dictionary with `reactive_dict`:
 ```python
 from anvil_reactive.main import reactive_dict
 
-state = reactive_dict({
-    "user": {"name": "Ada"},
-    "filters": [],
-})
+state = reactive_dict(
+    {
+        "user": {"name": "Ada"},
+        "filters": [],
+    }
+)
 ```
 
 Plain dictionaries and lists inside it are made reactive automatically.
