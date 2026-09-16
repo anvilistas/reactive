@@ -1,6 +1,21 @@
 # Changelog
 
-## v0.1.3 (01/01/1970)
+## v0.1.4 (01/01/1970)
+## What's Changed
+### 📖 Documentation
+
+- Prepare documentation hosting on Read the Docs [#42](https://github.com/anvilistas/reactive/pull/42)
+- Add client characterization suite and Reactive documentation [#40](https://github.com/anvilistas/reactive/pull/40)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvilistas/reactive/compare/v0.1.3...v0.1.4
+
+---
+
+## v0.1.3 (19/02/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 
