@@ -79,6 +79,7 @@ def __init__(self, **properties):
     super().__init__(**properties)
     self._search_request = 0
 
+
 @handle("search_box", "change")
 def search_box_change(self, **event_args):
     self._search_request += 1
